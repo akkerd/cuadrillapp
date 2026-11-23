@@ -198,7 +198,7 @@ Un `Makefile` en la raíz es el punto de entrada único para humanos, CI y Claud
 ### 16. Empaquetado: imagen Docker multi-etapa
 ```dockerfile
 FROM node:26-slim AS web            # 1) build de la PWA
-RUN corepack enable
+RUN npm install -g pnpm@12.21.0   # Node 26 ya no incluye corepack
 WORKDIR /repo
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web apps/web
@@ -221,9 +221,10 @@ Docker evita depender de que el runtime nativo de Render tenga a la vez Node y P
 
 ### 17. CI/CD
 - **GitHub Actions** `ci.yml` en `pull_request` y `push` a main:
-  - job `verify`: `astral-sh/setup-uv` (con caché), Node desde `.node-version` + pnpm vía corepack (caché del store y de los navegadores de Playwright), `make setup`, `make verify`; sube el informe de Playwright como artefacto si falla.
+  - job `verify`: `astral-sh/setup-uv` (con caché), Node desde `.node-version` + pnpm con `pnpm/action-setup` (versión del campo `packageManager`; caché del store y de los navegadores de Playwright), `make setup`, `make verify`; sube el informe de Playwright como artefacto si falla.
   - job `docker`: `docker build` de la imagen y prueba de humo (`docker run` + `curl /healthz`). Detecta un Dockerfile roto antes de mergear (no forma parte de `make verify` porque las sesiones en la nube pueden no tener Docker).
-- **Ruleset de main**: PR obligatorio, checks `verify` y `docker` obligatorios, 0 aprobaciones (proyecto de una persona), sin force-push.
+- **Repositorio público** (`akkerd/cuadrillapp`): permite rulesets gratis en el plan Free y activa el escaneo de secretos con protección de push. Nada sensible vive en el repo (specs `delivery-pipeline`).
+- **Ruleset de main**: PR obligatorio, checks `verify` y `docker` obligatorios, 0 aprobaciones (proyecto de una persona), sin force-push ni borrado.
 - **Render Blueprint** (`render.yaml`): web service `runtime: docker`, `plan: free`, `healthCheckPath: /healthz`, auto-deploy solo cuando los checks del commit pasan (`autoDeployTrigger: checksPass`). Render no cambia el tráfico a la versión nueva hasta que el health check responde → spec "Despliegue sin caída".
   - *Fallback* si esa opción no está disponible en el plan: auto-deploy desactivado + job `deploy` en Actions que, tras `verify` y `docker` en main, llama al Deploy Hook de Render (URL como secreto de GitHub).
 - `/healthz` devuelve `{"status": "ok", "version": RENDER_GIT_COMMIT}` → Claude (o el usuario) confirma qué commit está en producción.
@@ -268,7 +269,7 @@ Hoy: 1 instancia, 1 worker, estado en memoria. Para escalar horizontalmente solo
 ## Migration Plan
 
 Proyecto nuevo, sin migración de datos. Puesta en marcha:
-1. Usuario: `gh auth login`; Claude crea el repo `cuadrillapp` en GitHub y sube el código.
+1. Hecho: repo público `akkerd/cuadrillapp` creado, con escaneo de secretos y protección de push; commits firmados con el email noreply de GitHub.
 2. Usuario: crea cuenta en Render y conecta el Blueprint (`render.yaml`) al repo (una vez, desde el dashboard).
 3. Claude configura el ruleset de main y verifica el primer despliegue con `/healthz`.
 4. Usuario: instala la app de Claude/GitHub en el repo y configura el entorno de la nube con el script de setup.

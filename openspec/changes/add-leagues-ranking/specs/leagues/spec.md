@@ -43,8 +43,8 @@ Una sala asociada a una liga SHALL mostrar el nombre de la liga a todos los part
 Al crear su perfil en una sala de liga, el participante SHALL ver los jugadores existentes de la liga (emoji + nombre) bajo "¿Quién eres?" para elegirse con un toque, o la opción "Nuevo" para escribir un nombre. Elegir un jugador precarga su nombre y emoji, que se pueden cambiar.
 
 #### Scenario: Me elijo de la lista
-- **WHEN** Diego, que jugó antes en la liga, se une y toca "🐸 Diego" en la lista
-- **THEN** entra con ese nombre y emoji y sus resultados de este concurso se suman a los de "Diego" en la liga
+- **WHEN** Lucas, que jugó antes en la liga, se une y toca "🐸 Lucas" en la lista
+- **THEN** entra con ese nombre y emoji y sus resultados de este concurso se suman a los de "Lucas" en la liga
 
 #### Scenario: Preselección
 - **WHEN** un dispositivo o una cuenta ya usó un jugador de esa liga
@@ -58,8 +58,8 @@ Al crear su perfil en una sala de liga, el participante SHALL ver los jugadores 
 Dentro de una liga, dos participaciones con el mismo nombre normalizado (sin distinguir mayúsculas, tildes ni espacios sobrantes) SHALL contar como el mismo jugador. Un nombre nuevo que no coincide con ninguno crea un jugador nuevo en la liga al guardarse los resultados.
 
 #### Scenario: Escribe su nombre en vez de elegirlo
-- **WHEN** alguien elige "Nuevo" y escribe "diego " en una liga donde existe "Diego"
-- **THEN** se le asigna el jugador "Diego" de la liga
+- **WHEN** alguien elige "Nuevo" y escribe "lucas " en una liga donde existe "Lucas"
+- **THEN** se le asigna el jugador "Lucas" de la liga
 
 ### Requirement: Jugadores vinculados a una cuenta
 Un jugador de liga vinculado a una cuenta de Google SHALL poder elegirse solo desde un dispositivo con esa cuenta, o por un admin al añadirlo como participante manual; a los demás les aparece con candado. Al elegir un jugador sin vincular con la sesión iniciada, el sistema MUST vincularlo a esa cuenta.

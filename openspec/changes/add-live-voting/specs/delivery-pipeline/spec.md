@@ -65,3 +65,17 @@ El repositorio y los logs de CI MUST NOT contener secretos; la configuración se
 #### Scenario: Revisión de configuración
 - **WHEN** se inspeccionan los ficheros del repositorio y los logs de CI
 - **THEN** no aparece ninguna credencial ni token
+
+### Requirement: Repositorio público con escaneo de secretos
+El repositorio es público y SHALL tener activados el escaneo de secretos y la protección de push del proveedor, de modo que un push que contenga una credencial reconocible MUST rechazarse antes de quedar publicado.
+
+#### Scenario: Push con una credencial
+- **WHEN** alguien intenta hacer push de un commit que contiene un token reconocible
+- **THEN** GitHub rechaza el push e indica el fichero y la línea
+
+### Requirement: Sin datos personales en el repositorio
+El repositorio MUST NOT contener datos personales: ni emails personales, ni teléfonos, ni datos de los participantes de partidas reales. Los commits MUST firmarse con el email privado (noreply) del proveedor y los ejemplos de specs y tests MUST usar nombres ficticios.
+
+#### Scenario: Autoría de commits
+- **WHEN** se revisa el historial del repositorio
+- **THEN** ningún commit muestra un email personal

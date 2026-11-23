@@ -59,7 +59,7 @@
 
 - [ ] 9.1 Dockerfile multi-etapa (build web con Node 26 + runtime `python:3.14-slim` con uv, usuario sin privilegios, 1 worker) y `.dockerignore`; verificar con `docker build`, `docker run` y `curl /healthz` en local
 - [ ] 9.2 Workflow `ci.yml` con jobs `verify` (setup-uv + pnpm con cachés, `make setup`, `make verify`, artefacto del informe si falla) y `docker` (build + prueba de humo); verificar con un PR de prueba con un test roto (rojo) y arreglado (verde)
-- [ ] 9.3 Crear el repo en GitHub (requiere `gh auth login` del usuario), subir el código y crear el ruleset de main (PR + checks `verify` y `docker`, sin force-push); verificar que un push directo a main es rechazado
+- [ ] 9.3 Repo público en GitHub con escaneo de secretos y protección de push activados, y ruleset de main (PR + checks `verify` y `docker`, sin force-push ni borrado); verificar por API que ambas opciones están activas y que un push directo a main es rechazado
 - [ ] 9.4 `render.yaml` (`runtime: docker`, free, `/healthz`, deploy tras checks) y conexión del Blueprint (paso manual del usuario); comprobar si `autoDeployTrigger: checksPass` está disponible y, si no, implementar el fallback con Deploy Hook; verificar que un merge verde despliega y que `/healthz` devuelve el SHA
 - [ ] 9.5 Probar la protección del despliegue: un commit que rompe el arranque no sustituye a la versión buena; documentar rollback (revert por PR y rollback en Render) en README; verificar ejecutando ambos procedimientos una vez
 

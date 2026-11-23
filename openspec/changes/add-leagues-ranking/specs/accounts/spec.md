@@ -46,8 +46,8 @@ De la cuenta de Google el sistema MUST guardar solo el identificador de la cuent
 Al iniciar sesión, el sistema SHALL vincular a la cuenta los jugadores de liga que ese dispositivo haya usado en concursos anteriores, siempre que esos jugadores no estén ya vinculados a otra cuenta.
 
 #### Scenario: Jugué como invitado y luego inicio sesión
-- **WHEN** alguien que jugó como "Diego" en la liga "Los Primos" desde su móvil sin sesión inicia sesión después en ese móvil
-- **THEN** la liga "Los Primos" aparece entre sus ligas y "Diego" queda vinculado a su cuenta
+- **WHEN** alguien que jugó como "Lucas" en la liga "Los Primos" desde su móvil sin sesión inicia sesión después en ese móvil
+- **THEN** la liga "Los Primos" aparece entre sus ligas y "Lucas" queda vinculado a su cuenta
 
 ### Requirement: Acceso de prueba fuera de producción
 El sistema SHALL ofrecer un inicio de sesión de prueba sin Google, solo cuando se ejecute fuera de producción con el acceso de prueba activado explícitamente, para que los tests automáticos y las sesiones de desarrollo no necesiten credenciales reales. En producción MUST estar siempre desactivado.
