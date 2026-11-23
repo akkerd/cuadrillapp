@@ -1,0 +1,15 @@
+# Blueprint de Render: un único servicio web Docker en el plan gratuito.
+# Se conecta una vez desde el dashboard (New → Blueprint → este repo).
+services:
+  - type: web
+    name: cuadrillapp
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    # Despliega main solo cuando los checks de GitHub del commit están en verde.
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: ENV
+        value: production

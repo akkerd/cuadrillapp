@@ -96,7 +96,7 @@ def create_app(settings: Settings | None = None) -> ASGIApp:
 
 El cliente sigue siendo `socket.io-client`: acks, heartbeats, reconexión con backoff y fallback a long-polling en redes móviles que cortan WebSockets, sin reimplementarlos.
 - *Alternativa:* WebSockets nativos de FastAPI. Descartado: habría que escribir a mano acks, reconexión, heartbeats y salas, justo lo más delicado en móvil.
-- Se ejecuta con `uvicorn cuadrillapp.main:app --factory` y **1 worker**: el estado de las salas vive en el proceso (ver decisión 7 y "Camino de escalado").
+- Se ejecuta con `uvicorn cuadrillapp.main:create_app --factory` y **1 worker**: el estado de las salas vive en el proceso (ver decisión 7 y "Camino de escalado").
 
 ### 3. Un único servicio en el mismo origen
 FastAPI sirve la build estática de la web (`StaticFiles` para `/assets` y ficheros del SW) y una ruta comodín que devuelve `index.html` para rutas de la SPA (`/r/{code}`); excluye `/socket.io`, `/api` y `/healthz`. Sin CORS, sin dominios cruzados, y cookies first-party listas para el login del change 2. En desarrollo, Vite corre en `:5173` con proxy de `/socket.io`, `/api` y `/healthz` hacia Uvicorn en `:8000`.
@@ -215,7 +215,7 @@ RUN uv sync --frozen --no-dev
 COPY --from=web /repo/apps/web/dist ./web
 ENV WEB_DIST_DIR=/app/web PATH="/app/.venv/bin:$PATH"
 USER nobody
-CMD ["sh", "-c", "uvicorn cuadrillapp.main:app --factory --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*' --workers 1"]
+CMD ["sh", "-c", "uvicorn cuadrillapp.main:create_app --factory --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*' --workers 1"]
 ```
 Docker evita depender de que el runtime nativo de Render tenga a la vez Node y Python, y la misma imagen sirve en local, CI o cualquier otro proveedor (Fly.io, Cloud Run).
 
