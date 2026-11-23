@@ -1,0 +1,863 @@
+{
+  "$defs": {
+    "AdminSet": {
+      "additionalProperties": false,
+      "properties": {
+        "isAdmin": {
+          "type": "boolean"
+        },
+        "participantId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participantId",
+        "isAdmin"
+      ],
+      "title": "AdminSet",
+      "type": "object"
+    },
+    "CategoryAdd": {
+      "additionalProperties": false,
+      "properties": {
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "emoji",
+        "name"
+      ],
+      "title": "CategoryAdd",
+      "type": "object"
+    },
+    "CategoryDelete": {
+      "additionalProperties": false,
+      "properties": {
+        "categoryId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "categoryId"
+      ],
+      "title": "CategoryDelete",
+      "type": "object"
+    },
+    "CategoryMove": {
+      "additionalProperties": false,
+      "properties": {
+        "categoryId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            -1,
+            1
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "categoryId",
+        "direction"
+      ],
+      "title": "CategoryMove",
+      "type": "object"
+    },
+    "CategoryResultView": {
+      "properties": {
+        "categoryId": {
+          "type": "string"
+        },
+        "emoji": {
+          "type": "string"
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/RankEntryView"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "categoryId",
+        "emoji",
+        "name",
+        "entries"
+      ],
+      "title": "CategoryResultView",
+      "type": "object"
+    },
+    "CategoryUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "categoryId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "categoryId",
+        "emoji",
+        "name"
+      ],
+      "title": "CategoryUpdate",
+      "type": "object"
+    },
+    "CategoryView": {
+      "properties": {
+        "emoji": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "emoji",
+        "name"
+      ],
+      "title": "CategoryView",
+      "type": "object"
+    },
+    "JoinResult": {
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "participantId": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "participantId",
+        "token"
+      ],
+      "title": "JoinResult",
+      "type": "object"
+    },
+    "KickedEvent": {
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "KickedEvent",
+      "type": "object"
+    },
+    "ManualAdd": {
+      "additionalProperties": false,
+      "properties": {
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "role": {
+          "default": "candidate",
+          "enum": [
+            "candidate",
+            "voter"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "emoji"
+      ],
+      "title": "ManualAdd",
+      "type": "object"
+    },
+    "Me": {
+      "properties": {
+        "isAdmin": {
+          "type": "boolean"
+        },
+        "participantId": {
+          "type": "string"
+        },
+        "progress": {
+          "$ref": "#/$defs/Progress"
+        }
+      },
+      "required": [
+        "participantId",
+        "isAdmin",
+        "progress"
+      ],
+      "title": "Me",
+      "type": "object"
+    },
+    "ParticipantKick": {
+      "additionalProperties": false,
+      "properties": {
+        "participantId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participantId"
+      ],
+      "title": "ParticipantKick",
+      "type": "object"
+    },
+    "ParticipantUpdate": {
+      "additionalProperties": false,
+      "description": "Cambia mi perfil o, si soy admin, el rol de otro o el perfil de un manual.",
+      "properties": {
+        "emoji": {
+          "anyOf": [
+            {
+              "maxLength": 16,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 16,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "participantId": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "role": {
+          "anyOf": [
+            {
+              "enum": [
+                "candidate",
+                "voter"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "ParticipantUpdate",
+      "type": "object"
+    },
+    "ParticipantView": {
+      "properties": {
+        "connected": {
+          "type": "boolean"
+        },
+        "done": {
+          "type": "boolean"
+        },
+        "emoji": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "isAdmin": {
+          "type": "boolean"
+        },
+        "isManual": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "progress": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Progress"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "role": {
+          "enum": [
+            "candidate",
+            "voter"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "emoji",
+        "role",
+        "isAdmin",
+        "isManual",
+        "connected",
+        "done",
+        "progress"
+      ],
+      "title": "ParticipantView",
+      "type": "object"
+    },
+    "PeekResult": {
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "full": {
+          "type": "boolean"
+        },
+        "phase": {
+          "enum": [
+            "lobby",
+            "voting",
+            "results"
+          ],
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "title",
+        "phase",
+        "full"
+      ],
+      "title": "PeekResult",
+      "type": "object"
+    },
+    "Progress": {
+      "properties": {
+        "given": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "given",
+        "total"
+      ],
+      "title": "Progress",
+      "type": "object"
+    },
+    "RankEntryView": {
+      "properties": {
+        "candidateId": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer"
+        },
+        "emoji": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "candidateId",
+        "name",
+        "emoji",
+        "score",
+        "count",
+        "position"
+      ],
+      "title": "RankEntryView",
+      "type": "object"
+    },
+    "RejoinResult": {
+      "properties": {
+        "participantId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "participantId"
+      ],
+      "title": "RejoinResult",
+      "type": "object"
+    },
+    "ReplacedEvent": {
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "ReplacedEvent",
+      "type": "object"
+    },
+    "ResultsView": {
+      "properties": {
+        "byCategory": {
+          "items": {
+            "$ref": "#/$defs/CategoryResultView"
+          },
+          "type": "array"
+        },
+        "overall": {
+          "items": {
+            "$ref": "#/$defs/RankEntryView"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "overall",
+        "byCategory"
+      ],
+      "title": "ResultsView",
+      "type": "object"
+    },
+    "RoomCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "role": {
+          "default": "candidate",
+          "enum": [
+            "candidate",
+            "voter"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "emoji"
+      ],
+      "title": "RoomCreate",
+      "type": "object"
+    },
+    "RoomJoin": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        },
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "role": {
+          "default": "candidate",
+          "enum": [
+            "candidate",
+            "voter"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "emoji",
+        "code"
+      ],
+      "title": "RoomJoin",
+      "type": "object"
+    },
+    "RoomLeave": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "RoomLeave",
+      "type": "object"
+    },
+    "RoomPeek": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "RoomPeek",
+      "type": "object"
+    },
+    "RoomRejoin": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        },
+        "token": {
+          "maxLength": 64,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "token"
+      ],
+      "title": "RoomRejoin",
+      "type": "object"
+    },
+    "RoomSnapshot": {
+      "properties": {
+        "categories": {
+          "items": {
+            "$ref": "#/$defs/CategoryView"
+          },
+          "type": "array"
+        },
+        "code": {
+          "type": "string"
+        },
+        "me": {
+          "$ref": "#/$defs/Me"
+        },
+        "myScores": {
+          "items": {
+            "$ref": "#/$defs/ScoreView"
+          },
+          "type": "array"
+        },
+        "participants": {
+          "items": {
+            "$ref": "#/$defs/ParticipantView"
+          },
+          "type": "array"
+        },
+        "phase": {
+          "enum": [
+            "lobby",
+            "voting",
+            "results"
+          ],
+          "type": "string"
+        },
+        "proxyScores": {
+          "items": {
+            "$ref": "#/$defs/ScoreView"
+          },
+          "type": "array"
+        },
+        "results": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultsView"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "startCheck": {
+          "$ref": "#/$defs/StartCheck"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "code",
+        "version",
+        "title",
+        "phase",
+        "me",
+        "participants",
+        "categories",
+        "myScores",
+        "proxyScores",
+        "results",
+        "startCheck"
+      ],
+      "title": "RoomSnapshot",
+      "type": "object"
+    },
+    "RoundNew": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "RoundNew",
+      "type": "object"
+    },
+    "ScoreSet": {
+      "additionalProperties": false,
+      "description": "Fija (o borra con `quarters: null`) una nota en cuartos de punto.",
+      "properties": {
+        "asParticipantId": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "candidateId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        "categoryId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        "quarters": {
+          "anyOf": [
+            {
+              "maximum": 40,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "candidateId",
+        "categoryId",
+        "quarters"
+      ],
+      "title": "ScoreSet",
+      "type": "object"
+    },
+    "ScoreView": {
+      "properties": {
+        "candidateId": {
+          "type": "string"
+        },
+        "categoryId": {
+          "type": "string"
+        },
+        "quarters": {
+          "type": "integer"
+        },
+        "voterId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "voterId",
+        "candidateId",
+        "categoryId",
+        "quarters"
+      ],
+      "title": "ScoreView",
+      "type": "object"
+    },
+    "StartCheck": {
+      "properties": {
+        "missing": {
+          "items": {
+            "enum": [
+              "categories",
+              "candidates",
+              "participants"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ready": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ready",
+        "missing"
+      ],
+      "title": "StartCheck",
+      "type": "object"
+    },
+    "TitleSet": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "maxLength": 30,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "TitleSet",
+      "type": "object"
+    },
+    "VoterDone": {
+      "additionalProperties": false,
+      "properties": {
+        "asParticipantId": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "done": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "done"
+      ],
+      "title": "VoterDone",
+      "type": "object"
+    },
+    "VotingReopen": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "VotingReopen",
+      "type": "object"
+    },
+    "VotingReveal": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "VotingReveal",
+      "type": "object"
+    },
+    "VotingStart": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "VotingStart",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "title": "CuadrillappProtocol",
+  "type": "object"
+}

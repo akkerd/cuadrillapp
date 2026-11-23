@@ -1,0 +1,113 @@
+// Generado por `make gen` desde apps/server. No editar a mano.
+
+export const LIMITS = {
+  "maxParticipants": 30,
+  "maxCategories": 8,
+  "nameMaxLength": 16,
+  "titleMaxLength": 30,
+  "categoryNameMaxLength": 20,
+  "codeLength": 5,
+  "maxQuarters": 40,
+  "quartersPerPoint": 4
+} as const;
+
+export const DEFAULT_TITLE = "Concurso";
+export const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+export const EMOJIS: readonly string[] = [
+  "🦄",
+  "🐸",
+  "🌮",
+  "🥑",
+  "👽",
+  "🤖",
+  "🦖",
+  "🐙",
+  "🍕",
+  "🤡",
+  "👻",
+  "🎃",
+  "🦥",
+  "🐧",
+  "🦩",
+  "🐔",
+  "🥸",
+  "🤠",
+  "😎",
+  "🧌",
+  "🐷",
+  "🐵",
+  "🦊",
+  "🐼",
+  "🐨",
+  "🐯",
+  "🦁",
+  "🐮",
+  "🐻",
+  "🐶",
+  "🐱",
+  "🐹",
+  "🦔",
+  "🦦",
+  "🦭",
+  "🐳",
+  "🦈",
+  "🐢",
+  "🦀",
+  "🐝",
+  "🍩",
+  "🍔",
+  "🌭",
+  "🍟",
+  "🥨",
+  "🧀",
+  "🍉",
+  "🍍",
+  "🥥",
+  "🍄",
+  "🌵",
+  "🌈",
+  "🔥",
+  "⚡",
+  "🪩",
+  "🎸",
+  "🛸",
+  "🧙",
+  "🥷",
+  "🧛"
+];
+
+export const CATEGORY_SUGGESTIONS: readonly { emoji: string; name: string }[] = [
+  {
+    "emoji": "😂",
+    "name": "Gracioso"
+  },
+  {
+    "emoji": "🎨",
+    "name": "Original"
+  },
+  {
+    "emoji": "💪",
+    "name": "Esfuerzo"
+  },
+  {
+    "emoji": "👗",
+    "name": "Estilo"
+  },
+  {
+    "emoji": "🔥",
+    "name": "Épico"
+  },
+  {
+    "emoji": "😍",
+    "name": "Bonito"
+  },
+  {
+    "emoji": "🤯",
+    "name": "Sorpresa"
+  },
+  {
+    "emoji": "😋",
+    "name": "Sabor"
+  }
+];

@@ -1,0 +1,43 @@
+// Generado por `make gen` desde apps/server. No editar a mano.
+
+import type * as P from "./generated";
+
+export type Role = "candidate" | "voter";
+export type Phase = "lobby" | "voting" | "results";
+export type StartRequirement = "categories" | "candidates" | "participants";
+export type ErrorCode = "INVALID" | "RATE_LIMITED" | "ROOM_NOT_FOUND" | "ROOM_FULL" | "TOO_MANY_ROOMS" | "NOT_IN_ROOM" | "BAD_TOKEN" | "NAME_TAKEN" | "FORBIDDEN" | "WRONG_PHASE" | "NOT_FOUND" | "NOT_CANDIDATE" | "NOT_MANUAL" | "SELF_VOTE" | "LAST_ADMIN" | "TOO_MANY_CATEGORIES" | "START_REQUIREMENTS";
+export type ClientErrorCode = "TIMEOUT" | "DISCONNECTED";
+export type AnyErrorCode = ErrorCode | ClientErrorCode;
+
+export type Ack<T> = { ok: true; data: T } | { ok: false; error: AnyErrorCode };
+
+export interface ClientCommands {
+  "room:create": { payload: P.RoomCreate; data: P.JoinResult };
+  "room:peek": { payload: P.RoomPeek; data: P.PeekResult };
+  "room:join": { payload: P.RoomJoin; data: P.JoinResult };
+  "room:rejoin": { payload: P.RoomRejoin; data: P.RejoinResult };
+  "room:leave": { payload: P.RoomLeave; data: null };
+  "room:title": { payload: P.TitleSet; data: null };
+  "participant:update": { payload: P.ParticipantUpdate; data: null };
+  "participant:kick": { payload: P.ParticipantKick; data: null };
+  "admin:set": { payload: P.AdminSet; data: null };
+  "manual:add": { payload: P.ManualAdd; data: null };
+  "category:add": { payload: P.CategoryAdd; data: null };
+  "category:update": { payload: P.CategoryUpdate; data: null };
+  "category:delete": { payload: P.CategoryDelete; data: null };
+  "category:move": { payload: P.CategoryMove; data: null };
+  "voting:start": { payload: P.VotingStart; data: null };
+  "voting:reveal": { payload: P.VotingReveal; data: null };
+  "voting:reopen": { payload: P.VotingReopen; data: null };
+  "round:new": { payload: P.RoundNew; data: null };
+  "score:set": { payload: P.ScoreSet; data: null };
+  "voter:done": { payload: P.VoterDone; data: null };
+}
+
+export interface ServerEvents {
+  "room:state": P.RoomSnapshot;
+  "room:kicked": P.KickedEvent;
+  "room:replaced": P.ReplacedEvent;
+}
+
+export const ERROR_CODES: readonly ErrorCode[] = ["INVALID", "RATE_LIMITED", "ROOM_NOT_FOUND", "ROOM_FULL", "TOO_MANY_ROOMS", "NOT_IN_ROOM", "BAD_TOKEN", "NAME_TAKEN", "FORBIDDEN", "WRONG_PHASE", "NOT_FOUND", "NOT_CANDIDATE", "NOT_MANUAL", "SELF_VOTE", "LAST_ADMIN", "TOO_MANY_CATEGORIES", "START_REQUIREMENTS"];

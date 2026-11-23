@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import "@fontsource/fredoka/latin-400.css";
+@import "@fontsource/fredoka/latin-500.css";
+@import "@fontsource/fredoka/latin-600.css";
+@import "@fontsource/fredoka/latin-700.css";
+
+/* Paleta "fiesta": pegatinas con borde de tinta y sombra dura sobre fondo uva. */
+@theme {
+  --font-sans: "Fredoka", ui-rounded, system-ui, sans-serif;
+  --color-grape: #5b2ee5;
+  --color-grape-deep: #3a1a9e;
+  --color-plum: #8f3cf7;
+  --color-sun: #ffd23f;
+  --color-bubblegum: #ff5fa2;
+  --color-mint: #22c9b7;
+  --color-tangerine: #ff8a3d;
+  --color-ink: #1e1338;
+  --color-paper: #fff9ee;
+  --shadow-hard: 0 4px 0 0 var(--color-ink);
+  --shadow-hard-sm: 0 2px 0 0 var(--color-ink);
+  --shadow-hard-lg: 0 6px 0 0 var(--color-ink);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--color-paper);
+  background-color: var(--color-grape);
+  background-image:
+    radial-gradient(rgb(255 255 255 / 0.09) 2px, transparent 2px),
+    linear-gradient(165deg, var(--color-grape) 0%, var(--color-plum) 100%);
+  background-size:
+    22px 22px,
+    100% 100%;
+  background-attachment: fixed;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+.safe-area {
+  padding-top: max(env(safe-area-inset-top), 12px);
+  padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  padding-left: max(env(safe-area-inset-left), 16px);
+  padding-right: max(env(safe-area-inset-right), 16px);
+}
+
+/* Deslizador de notas: pista gruesa y pulgar tipo pegatina. */
+.score-range {
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  touch-action: pan-y;
+}
+.score-range::-webkit-slider-runnable-track {
+  height: 14px;
+  border-radius: 999px;
+  border: 3px solid var(--color-ink);
+  background: linear-gradient(90deg, var(--color-bubblegum), var(--color-sun), var(--color-mint));
+}
+.score-range::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  border: 3px solid var(--color-ink);
+  background: linear-gradient(90deg, var(--color-bubblegum), var(--color-sun), var(--color-mint));
+}
+.score-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 34px;
+  height: 34px;
+  margin-top: -13px;
+  border-radius: 999px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-hard-sm);
+}
+.score-range::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-paper);
+}
+.score-range[data-empty="true"]::-webkit-slider-thumb {
+  background: #d9d2f0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-sun);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
