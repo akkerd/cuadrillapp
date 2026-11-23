@@ -1,0 +1,45 @@
+schema: spec-driven
+
+context: |
+  Language: es
+  All artifacts must be written in es.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Producto: Cuadrillapp, PWA móvil para concursos de votación entre amigos (salas con
+  código, emoji + nombre, categorías, puntuaciones 0-10 en pasos de 0,25, ligas con
+  ranking). Proyecto personal de prueba, no producción: priorizar simplicidad.
+
+  Stack (monorepo políglota: proyecto uv para Python + workspace pnpm para el frontend):
+  - apps/server: Python 3.14 gestionado con uv. FastAPI (ASGI) + python-socketio
+    (AsyncServer en modo ASGI) servidos por Uvicorn con 1 worker. Pydantic v2 para
+    validar y para el contrato del protocolo; pydantic-settings para configuración.
+    Dominio puro (dataclasses, sin I/O) en `cuadrillapp.domain`.
+  - apps/web: React 19 + Vite + TypeScript, Tailwind CSS v4, Motion, lucide-react,
+    vite-plugin-pwa, socket.io-client. UI en español.
+  - packages/protocol: tipos TypeScript GENERADOS desde los modelos Pydantic (JSON
+    Schema) y la OpenAPI de FastAPI. Nunca se editan a mano (`make gen`).
+  - e2e: Playwright (TypeScript) contra la build de producción.
+  - Persistencia (solo ligas/ranking): SQLAlchemy 2.0 async + Alembic. Neon Postgres
+    en producción, SQLite en desarrollo/tests, Postgres de servicio en CI.
+    Auth: Authlib (OIDC Google) + cookie de sesión firmada.
+  - Hosting: una imagen Docker (build web con Node + runtime Python) como único
+    servicio web en Render (sirve API, sockets y estáticos).
+
+  Convenciones:
+  - Código, identificadores y commits en inglés; textos de UI en español.
+  - Botones con icono + como mucho 1-2 palabras cortas; nada de frases largas.
+    Todos los textos de UI centralizados en apps/web/src/copy.ts.
+  - El servidor es la autoridad: el cliente envía comandos y renderiza snapshots.
+  - Python: Ruff (lint + formato), mypy strict, pytest + pytest-asyncio.
+    Web: Biome, tsc, Vitest.
+  - `make verify` = gen-check + lint + typecheck + tests (Python y web) + build + e2e.
+  - Nunca push directo a main: rama + PR + CI verde. Main se despliega solo.
+
+rules:
+  proposal:
+    - Indicar siempre qué queda fuera de alcance.
+  specs:
+    - Describir comportamiento observable; nada de nombres de librerías en los specs.
+  tasks:
+    - Tareas pequeñas (una sesión), cada una con su verificación concreta.
+    - Cada grupo incluye sus propios tests; no dejar los tests para el final.
