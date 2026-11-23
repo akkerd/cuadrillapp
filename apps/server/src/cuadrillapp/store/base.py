@@ -1,0 +1,19 @@
+"""Interfaz de almacenamiento de salas.
+
+Hoy solo existe la implementación en memoria; una implementación en Redis permitiría
+varias instancias (ver design.md, "Camino de escalado").
+"""
+
+from collections.abc import Iterator
+from typing import Protocol
+
+from cuadrillapp.domain.models import Room
+
+
+class RoomStore(Protocol):
+    def get(self, code: str) -> Room | None: ...
+    def put(self, room: Room) -> None: ...
+    def delete(self, code: str) -> None: ...
+    def exists(self, code: str) -> bool: ...
+    def codes(self) -> Iterator[str]: ...
+    def count(self) -> int: ...
