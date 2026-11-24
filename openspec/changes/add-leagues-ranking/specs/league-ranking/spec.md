@@ -2,71 +2,71 @@
 
 ## Purpose
 
-Guarda el resultado de cada concurso de una liga y muestra a sus miembros un ranking acumulado con medallero, medias e historial de concursos.
+Saves the result of every contest in a league and shows its members a cumulative ranking with a medal table, means and the contest history.
 
 ## ADDED Requirements
 
-### Requirement: Guardar resultados al revelar
-Al revelar los resultados de una sala de liga, el sistema SHALL guardar el concurso (título, fecha, categorías) y, por cada concursante, su nota final, su posición en el ranking general y sus medias por categoría. Si se reabre la votación y se vuelve a revelar, el guardado MUST sustituir al anterior del mismo concurso. Un concurso sin ninguna nota MUST NOT guardarse.
+### Requirement: Save results on reveal
+When the results of a league room are revealed, the system SHALL save the contest (title, date, categories) and, for each candidate, their final score, their position in the overall ranking and their per-category means. If voting is reopened and the results are revealed again, the save MUST replace the previous one for the same contest. A contest without any scores MUST NOT be saved.
 
-#### Scenario: Guardado al revelar
-- **WHEN** un admin revela los resultados en una sala de la liga "Los Primos"
-- **THEN** el concurso aparece en el historial de "Los Primos" con su podio
+#### Scenario: Saved on reveal
+- **WHEN** an admin reveals the results in a room of the "Cousins" league
+- **THEN** the contest appears in the "Cousins" history with its podium
 
-#### Scenario: Revelar dos veces
-- **WHEN** un admin reabre la votación, se cambian notas y se vuelve a revelar
-- **THEN** la liga tiene un único registro de ese concurso con los resultados nuevos
+#### Scenario: Revealing twice
+- **WHEN** an admin reopens voting, scores change and the results are revealed again
+- **THEN** the league has a single record of that contest with the new results
 
-#### Scenario: Nueva ronda en la misma sala
-- **WHEN** un admin empieza "Otra" ronda y la revela
-- **THEN** se guarda como un concurso distinto en la misma liga
+#### Scenario: New round in the same room
+- **WHEN** an admin starts another round and reveals it
+- **THEN** it is saved as a separate contest in the same league
 
-### Requirement: Fallo al guardar
-Si el guardado falla, los resultados SHALL mostrarse igualmente en la sala, y los admins MUST ver un aviso "⚠️ Sin guardar" con un botón "Reintentar".
+### Requirement: Save failure
+If saving fails, the results SHALL still be shown in the room, and admins MUST see a short "not saved" warning with a retry button.
 
-#### Scenario: Base de datos no disponible
-- **WHEN** la base de datos no responde al revelar
-- **THEN** todos ven el podio y los admins ven el aviso con "Reintentar"
+#### Scenario: Database unavailable
+- **WHEN** the database does not respond on reveal
+- **THEN** everyone sees the podium and admins see the warning with the retry button
 
-### Requirement: Privacidad de las notas
-El sistema MUST NOT guardar notas individuales ni quién puntuó a quién; solo los agregados por concursante descritos en "Guardar resultados al revelar".
+### Requirement: Score privacy
+The system MUST NOT store individual scores or who scored whom; only the per-candidate aggregates described in "Save results on reveal".
 
-#### Scenario: Datos guardados
-- **WHEN** se inspecciona lo guardado de un concurso
-- **THEN** solo contiene medias, posiciones y número de notas por concursante
+#### Scenario: Stored data
+- **WHEN** what was saved for a contest is inspected
+- **THEN** it only contains means, positions and the number of scores per candidate
 
-### Requirement: Clasificación de la liga
-El ranking de una liga SHALL incluir a cada jugador que haya sido concursante en al menos un concurso guardado, con: medallas de oro, plata y bronce (posiciones 1, 2 y 3 del ranking general de cada concurso, compartidas en empates), concursos jugados como concursante, media de sus notas finales y mejor nota final. Por defecto MUST ordenarse por oros, luego platas, luego bronces y luego media, de mayor a menor.
+### Requirement: League standings
+The league ranking SHALL include every player who has been a candidate in at least one saved contest, with: gold, silver and bronze medals (positions 1, 2 and 3 in each contest's overall ranking, shared on ties), contests played as a candidate, mean of their final scores and best final score. By default it MUST be ordered by golds, then silvers, then bronzes, then mean, from highest to lowest.
 
-#### Scenario: Medallero
-- **WHEN** Leo ganó 2 concursos y Ana ganó 1 y quedó segunda en 3
-- **THEN** Leo aparece por encima de Ana
+#### Scenario: Medal table
+- **WHEN** Leo won 2 contests and Ana won 1 and came second in 3
+- **THEN** Leo appears above Ana
 
-#### Scenario: Empate compartido
-- **WHEN** dos concursantes empatan en primera posición en un concurso
-- **THEN** ambos suman un oro
+#### Scenario: Shared tie
+- **WHEN** two candidates tie for first place in a contest
+- **THEN** both get a gold medal
 
-#### Scenario: Solo votante
-- **WHEN** un jugador de la liga solo ha participado como votante
-- **THEN** no aparece en la clasificación pero puede ver la liga
+#### Scenario: Voter only
+- **WHEN** a league player has only taken part as a voter
+- **THEN** they do not appear in the standings but can see the league
 
-### Requirement: Orden por media
-El usuario SHALL poder cambiar el orden del ranking a "Media" (media de notas finales de mayor a menor) con un toque.
+### Requirement: Order by mean
+The user SHALL be able to switch the ranking order to mean (mean of final scores from highest to lowest) with one tap.
 
-#### Scenario: Cambiar orden
-- **WHEN** un miembro toca "Media" en el ranking
-- **THEN** la lista se reordena por media de notas finales
+#### Scenario: Change the order
+- **WHEN** a member taps the mean tab in the ranking
+- **THEN** the list is reordered by mean of final scores
 
-### Requirement: Historial de concursos
-La liga SHALL mostrar el historial de concursos guardados, del más reciente al más antiguo, con título, fecha y podio, y al tocar uno MUST mostrar su ranking general y por categorías tal como se guardó.
+### Requirement: Contest history
+The league SHALL show the history of saved contests, from newest to oldest, with title, date and podium, and tapping one MUST show its overall and per-category rankings as they were saved.
 
-#### Scenario: Consultar un concurso antiguo
-- **WHEN** un miembro toca "Halloween 🎃" en el historial
-- **THEN** ve el ranking general y por categorías de ese concurso
+#### Scenario: Checking an old contest
+- **WHEN** a member taps "Halloween 🎃" in the history
+- **THEN** they see the overall and per-category rankings of that contest
 
-### Requirement: Acceso desde resultados
-En la pantalla de resultados de una sala de liga, el sistema SHALL mostrar el botón "🏆 Liga" que abre el ranking de la liga ya actualizado con el concurso recién guardado.
+### Requirement: Access from the results
+On the results screen of a league room, the system SHALL show a "🏆 League" button that opens the league ranking, already updated with the contest just saved.
 
-#### Scenario: Ver la liga tras revelar
-- **WHEN** un participante pulsa "🏆 Liga" tras revelar
-- **THEN** ve el ranking de la liga incluyendo el concurso que acaba de terminar
+#### Scenario: Seeing the league after the reveal
+- **WHEN** a participant taps the league button after the reveal
+- **THEN** they see the league ranking including the contest that just ended

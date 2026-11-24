@@ -2,69 +2,69 @@
 
 ## Purpose
 
-Define la experiencia de la app en el móvil: PWA instalable a pantalla completa, tono visual festivo con iconos y palabras cortas, pantalla siempre encendida durante la partida y comportamiento ante conexión lenta o nuevas versiones.
+Defines the app experience on a phone: an installable fullscreen PWA, a party-game look with icons and short words, the screen kept on during a game, and the behaviour on slow connections or when a new version is deployed.
 
 ## ADDED Requirements
 
-### Requirement: App instalable
-La app SHALL ser instalable en la pantalla de inicio de Android e iOS con nombre, icono y color propios, y al abrirse desde el icono MUST ocupar toda la pantalla sin barra del navegador (pantalla completa donde el sistema lo permita y modo standalone en el resto).
+### Requirement: Installable app
+The app SHALL be installable on the Android and iOS home screen with its own name, icon and colour, and when opened from the icon it MUST fill the whole screen without the browser bar (fullscreen where the system allows it, standalone otherwise).
 
-#### Scenario: Abrir desde el icono
-- **WHEN** el usuario abre la app instalada desde la pantalla de inicio
-- **THEN** la app se muestra sin la barra de direcciones del navegador
+#### Scenario: Open from the icon
+- **WHEN** the user opens the installed app from the home screen
+- **THEN** the app is shown without the browser's address bar
 
-### Requirement: Ayuda de instalación
-Si la app se usa desde el navegador sin instalar, el sistema SHALL ofrecer un botón "Instalar": en Android lanza la instalación nativa y en iOS muestra una mini guía visual de dos pasos (Compartir → Añadir a inicio).
+### Requirement: Installation help
+If the app is used in the browser without being installed, the system SHALL offer an install button: on Android it triggers the native installation and on iOS it shows a two-step visual guide (Share → Add to Home Screen).
 
-#### Scenario: iPhone sin instalar
-- **WHEN** un usuario de iPhone pulsa "Instalar" en Safari
-- **THEN** ve la mini guía con los iconos de Compartir y Añadir a inicio
+#### Scenario: iPhone without installing
+- **WHEN** an iPhone user taps the install button in Safari
+- **THEN** they see the mini guide with the Share and Add to Home Screen icons
 
-### Requirement: Pantalla completa desde el navegador
-En navegadores que lo soporten, el sistema SHALL ofrecer un botón para alternar pantalla completa sin instalar la app.
+### Requirement: Fullscreen from the browser
+In browsers that support it, the system SHALL offer a button to toggle fullscreen without installing the app.
 
-#### Scenario: Android en Chrome
-- **WHEN** el usuario pulsa el botón de pantalla completa en Chrome Android
-- **THEN** la app pasa a ocupar toda la pantalla
+#### Scenario: Android in Chrome
+- **WHEN** the user taps the fullscreen button in Chrome on Android
+- **THEN** the app fills the whole screen
 
-### Requirement: Pantalla encendida
-Mientras el usuario esté dentro de una sala, el sistema SHALL evitar que la pantalla se apague en los dispositivos que lo permitan, y liberar ese bloqueo al salir de la sala.
+### Requirement: Screen kept on
+While the user is inside a room, the system SHALL prevent the screen from turning off on devices that allow it, and release that lock when leaving the room.
 
-#### Scenario: Votación larga
-- **WHEN** un participante está en la pantalla de votación sin tocar el móvil durante varios minutos
-- **THEN** la pantalla sigue encendida
+#### Scenario: Long voting session
+- **WHEN** a participant stays on the voting screen without touching the phone for several minutes
+- **THEN** the screen stays on
 
-### Requirement: Diseño móvil
-La interfaz SHALL estar diseñada para móvil en vertical (de 360 px de ancho en adelante), respetar las zonas seguras (notch y barra de gestos) y usar objetivos táctiles de al menos 44 px.
+### Requirement: Mobile design
+The interface SHALL be designed for a phone in portrait (360 px wide and up), respect the safe areas (notch and gesture bar) and use touch targets of at least 44 px.
 
-#### Scenario: iPhone con notch
-- **WHEN** la app se abre instalada en un iPhone con notch
-- **THEN** ningún control queda tapado por el notch ni por la barra de gestos
+#### Scenario: iPhone with a notch
+- **WHEN** the installed app opens on an iPhone with a notch
+- **THEN** no control is hidden by the notch or the gesture bar
 
-### Requirement: Tono visual y textos
-La UI SHALL usar una paleta colorida y desenfadada, tipografía redondeada, emojis y animaciones suaves. Cada botón MUST combinar un icono con como máximo dos palabras cortas en español; los avisos y errores MUST ser de una a tres palabras con emoji.
+### Requirement: Visual tone and copy
+The UI SHALL use a colourful, relaxed palette, a rounded typeface, emojis and smooth animations. Every button MUST combine an icon with at most two short words in the UI language; notices and errors MUST be one to three words with an emoji.
 
-#### Scenario: Botones principales
-- **WHEN** un usuario está en la pantalla de inicio
-- **THEN** ve botones del estilo "➕ Crear" y "🚪 Unirse", sin frases explicativas
+#### Scenario: Main buttons
+- **WHEN** a user is on the home screen
+- **THEN** they see buttons made of an icon and a single word (create, join), with no explanatory sentences
 
-### Requirement: Estado de conexión
-El sistema SHALL mostrar un indicador discreto cuando se pierda la conexión con el servidor y reintentar solo. Si el servidor tarda en responder al abrir la app (arranque en frío), MUST mostrar una pantalla de espera animada en lugar de un error.
+### Requirement: Connection status
+The system SHALL show an unobtrusive indicator when the connection to the server is lost and retry on its own. If the server is slow to respond when the app opens (cold start), it MUST show an animated waiting screen instead of an error.
 
-#### Scenario: Servidor dormido
-- **WHEN** un usuario abre la app y el servidor tarda 40 segundos en arrancar
-- **THEN** ve una animación de espera ("Despertando…") y la app continúa sola cuando el servidor responde
+#### Scenario: Sleeping server
+- **WHEN** a user opens the app and the server takes 40 seconds to start
+- **THEN** they see a "waking up" animation and the app carries on by itself when the server responds
 
-### Requirement: Actualizaciones de la app
-Cuando haya una nueva versión desplegada, el sistema SHALL avisar con un botón "Actualizar" y nunca MUST recargar la app por sí solo mientras el usuario esté dentro de una sala.
+### Requirement: App updates
+When a new version has been deployed, the system SHALL offer an update button and MUST NOT reload the app on its own while the user is inside a room.
 
-#### Scenario: Nueva versión en mitad de la votación
-- **WHEN** se despliega una versión nueva mientras un usuario vota
-- **THEN** la app no se recarga y muestra el aviso para actualizar cuando quiera
+#### Scenario: New version in the middle of voting
+- **WHEN** a new version is deployed while a user is voting
+- **THEN** the app does not reload and shows the update notice for the user to apply whenever they want
 
-### Requirement: Accesibilidad básica
-El texto y los botones SHALL tener contraste suficiente sobre los fondos de colores, los botones de solo icono MUST tener nombre accesible, y las animaciones MUST respetar la preferencia de reducir movimiento.
+### Requirement: Basic accessibility
+Text and buttons SHALL have enough contrast against the coloured backgrounds, icon-only buttons MUST have an accessible name, and animations MUST respect the reduce-motion preference.
 
-#### Scenario: Lector de pantalla
-- **WHEN** un lector de pantalla recorre un botón de solo icono
-- **THEN** anuncia su función (por ejemplo "Compartir sala")
+#### Scenario: Screen reader
+- **WHEN** a screen reader reaches an icon-only button
+- **THEN** it announces its purpose (for example "share room")

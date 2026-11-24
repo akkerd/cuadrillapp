@@ -2,85 +2,85 @@
 
 ## Purpose
 
-Permite crear salas de concurso en tiempo real identificadas por un código corto, unirse a ellas desde el móvil y mantener la conexión aunque el móvil se bloquee o cambie de app.
+Lets people create real-time contest rooms identified by a short code, join them from a phone, and stay connected even when the phone locks or switches apps.
 
 ## ADDED Requirements
 
-### Requirement: Crear sala
-El sistema SHALL permitir a cualquier visitante crear una sala nueva. Quien la crea entra como primer participante y como admin, y la sala empieza en la fase de lobby.
+### Requirement: Create a room
+The system SHALL let any visitor create a new room. The creator joins as the first participant and as admin, and the room starts in the lobby phase.
 
-#### Scenario: Creación correcta
-- **WHEN** un visitante pulsa "Crear" y completa su perfil
-- **THEN** el sistema crea una sala en fase lobby, le asigna un código único y lo muestra como admin dentro de ella
+#### Scenario: Successful creation
+- **WHEN** a visitor taps "Create" and completes their profile
+- **THEN** the system creates a room in the lobby phase, assigns it a unique code and shows the visitor inside it as admin
 
-### Requirement: Código de sala
-Cada sala SHALL tener un código de 5 caracteres en mayúsculas, sin caracteres ambiguos (0, O, 1, I, L), único entre las salas activas. La entrada del código MUST ignorar mayúsculas/minúsculas y espacios.
+### Requirement: Room code
+Each room SHALL have a 5-character uppercase code without ambiguous characters (0, O, 1, I, L), unique among active rooms. Code input MUST ignore letter case and spaces.
 
-#### Scenario: Código introducido en minúsculas
-- **WHEN** un visitante escribe " abc23 " en el campo de código y la sala ABC23 existe
-- **THEN** el sistema lo une a la sala ABC23
+#### Scenario: Code typed in lowercase
+- **WHEN** a visitor types " abc23 " in the code field and room ABC23 exists
+- **THEN** the system puts them in room ABC23
 
-#### Scenario: Código inexistente
-- **WHEN** un visitante introduce un código que no corresponde a ninguna sala activa
-- **THEN** el sistema muestra un error corto ("No existe") y no lo une a ninguna sala
+#### Scenario: Unknown code
+- **WHEN** a visitor enters a code that matches no active room
+- **THEN** the system shows a short "not found" notice and does not put them in any room
 
-### Requirement: Compartir sala
-Dentro de una sala, el sistema SHALL mostrar el código, un enlace directo y un código QR que abre ese enlace, además de un botón para compartir con las apps del móvil cuando el dispositivo lo soporte.
+### Requirement: Share a room
+Inside a room, the system SHALL show the code, a direct link and a QR code that opens that link, plus a button to share through the phone's apps when the device supports it.
 
-#### Scenario: Unirse por enlace
-- **WHEN** un visitante abre el enlace directo de una sala activa
-- **THEN** el sistema le lleva directamente a crear su perfil para esa sala, sin pedir el código
+#### Scenario: Join by link
+- **WHEN** a visitor opens the direct link of an active room
+- **THEN** the system takes them straight to creating their profile for that room, without asking for the code
 
-### Requirement: Título de la sala
-La sala SHALL tener un título corto (1-30 caracteres, por defecto "Concurso") visible para todos y editable solo por admins.
+### Requirement: Room title
+The room SHALL have a short title (1-30 characters, a default title until changed) visible to everyone and editable only by admins.
 
-#### Scenario: Admin cambia el título
-- **WHEN** un admin cambia el título a "Halloween 🎃"
-- **THEN** todos los participantes ven el nuevo título al instante
+#### Scenario: Admin changes the title
+- **WHEN** an admin changes the title to "Halloween 🎃"
+- **THEN** every participant sees the new title immediately
 
-### Requirement: Sincronización en tiempo real
-Todo cambio en el estado de la sala SHALL reflejarse en los dispositivos de todos los participantes conectados en menos de 1 segundo en condiciones normales de red, sin recargar la página.
+### Requirement: Real-time synchronisation
+Every change to the room state SHALL be reflected on the devices of all connected participants in under 1 second on a normal network, without reloading the page.
 
-#### Scenario: Llega un participante nuevo
-- **WHEN** un participante se une a la sala
-- **THEN** el resto de participantes lo ve aparecer en la lista sin hacer nada
+#### Scenario: A new participant arrives
+- **WHEN** a participant joins the room
+- **THEN** the other participants see them appear in the list without doing anything
 
-### Requirement: Reconexión automática
-Un participante que pierde la conexión (red, bloqueo de pantalla, cambio de app o recarga) SHALL conservar su plaza, su perfil, sus permisos y sus puntuaciones, y el sistema MUST reincorporarlo automáticamente a la misma plaza al recuperar la conexión desde el mismo dispositivo y navegador.
+### Requirement: Automatic reconnection
+A participant who loses the connection (network, screen lock, app switch or reload) SHALL keep their seat, profile, permissions and scores, and the system MUST automatically put them back in the same seat when the connection returns on the same device and browser.
 
-#### Scenario: Recarga de la página
-- **WHEN** un participante recarga la app en mitad de la votación
-- **THEN** vuelve a la sala con su mismo perfil y sus puntuaciones intactas, sin volver a introducir código ni nombre
+#### Scenario: Page reload
+- **WHEN** a participant reloads the app in the middle of voting
+- **THEN** they are back in the room with the same profile and their scores intact, without typing the code or name again
 
-#### Scenario: Estado desconectado visible
-- **WHEN** un participante pierde la conexión
-- **THEN** el resto lo ve atenuado como desconectado, pero sigue en la lista
+#### Scenario: Visible disconnected state
+- **WHEN** a participant loses the connection
+- **THEN** the others see them dimmed as disconnected, but they stay in the list
 
-### Requirement: Fin de vida de la sala
-El sistema SHALL eliminar una sala cuando lleve 30 minutos sin ningún participante conectado. Un dispositivo que intente volver a una sala eliminada MUST ver un aviso de sala cerrada y la opción de volver al inicio.
+### Requirement: Room end of life
+The system SHALL delete a room after 30 minutes without any connected participant. A device that tries to return to a deleted room MUST see a "room closed" notice and the option to go back to the home screen.
 
-#### Scenario: Sala abandonada
-- **WHEN** pasan 30 minutos sin participantes conectados en una sala
-- **THEN** la sala deja de existir y su código deja de ser válido
+#### Scenario: Abandoned room
+- **WHEN** 30 minutes pass with no connected participants in a room
+- **THEN** the room no longer exists and its code stops being valid
 
-#### Scenario: Reinicio del servidor
-- **WHEN** el servidor se reinicia (por ejemplo, por un despliegue) y un participante intenta reconectar
-- **THEN** ve el aviso de sala cerrada y un botón para volver al inicio
+#### Scenario: Server restart
+- **WHEN** the server restarts (for example during a deployment) and a participant tries to reconnect
+- **THEN** they see the "room closed" notice and a button to go back home
 
-### Requirement: Límites de sala
-El sistema SHALL limitar cada sala a 30 participantes (incluidos los manuales) y rechazar la unión cuando la sala esté llena, con un mensaje corto ("Llena").
+### Requirement: Room limits
+The system SHALL limit each room to 30 participants (manual ones included) and reject joins when the room is full, with a short "full" notice.
 
-#### Scenario: Sala llena
-- **WHEN** un visitante intenta unirse a una sala con 30 participantes
-- **THEN** el sistema rechaza la unión y muestra "Llena"
+#### Scenario: Full room
+- **WHEN** a visitor tries to join a room with 30 participants
+- **THEN** the system rejects the join and shows the "full" notice
 
-### Requirement: Protección frente a abuso
-El sistema MUST validar todos los datos que envían los clientes, rechazar los inválidos sin alterar la sala y limitar la frecuencia de acciones por conexión y la creación de salas por origen.
+### Requirement: Abuse protection
+The system MUST validate all data sent by clients, reject invalid data without changing the room, and limit the rate of actions per connection and of room creation per origin.
 
-#### Scenario: Datos inválidos
-- **WHEN** un cliente envía una acción con datos fuera de formato (por ejemplo, una nota de 11)
-- **THEN** el sistema la rechaza con un error y el estado de la sala no cambia
+#### Scenario: Invalid data
+- **WHEN** a client sends an action with malformed data (for example a score of 11)
+- **THEN** the system rejects it with an error and the room state does not change
 
-#### Scenario: Ráfaga de acciones
-- **WHEN** una conexión envía acciones por encima del límite de frecuencia
-- **THEN** el sistema rechaza las acciones sobrantes sin afectar al resto de participantes
+#### Scenario: Burst of actions
+- **WHEN** a connection sends actions above the rate limit
+- **THEN** the system rejects the excess actions without affecting the other participants

@@ -2,89 +2,89 @@
 
 ## Purpose
 
-Define cómo se vota en un concurso: categorías, fases, puntuación de 0 a 10 en pasos de 0,25 por concursante y categoría, voto delegado para participantes sin móvil, progreso visible y anonimato de las notas.
+Defines how a contest is voted: categories, phases, a 0-10 score in 0.25 steps per candidate and category, proxy voting for participants without a phone, visible progress and anonymous scores.
 
 ## ADDED Requirements
 
-### Requirement: Categorías
-Los admins SHALL poder crear, editar, reordenar y borrar categorías mientras la sala esté en lobby. Cada categoría tiene un emoji y un nombre de 1 a 20 caracteres. Una sala admite de 1 a 8 categorías y el sistema MUST ofrecer sugerencias rápidas (por ejemplo 😂 Gracioso, 🎨 Original, 💪 Esfuerzo, 👗 Estilo).
+### Requirement: Categories
+Admins SHALL be able to create, edit, reorder and delete categories while the room is in the lobby. Each category has an emoji and a name of 1 to 20 characters. A room allows 1 to 8 categories, and the system MUST offer quick suggestions (for example funny, original, effort, style).
 
-#### Scenario: Añadir categoría sugerida
-- **WHEN** un admin toca la sugerencia "😂 Gracioso"
-- **THEN** la categoría se añade y todos la ven en el lobby
+#### Scenario: Add a suggested category
+- **WHEN** an admin taps the "😂 funny" suggestion
+- **THEN** the category is added and everyone sees it in the lobby
 
-#### Scenario: Categorías bloqueadas
-- **WHEN** un admin intenta añadir o borrar una categoría con la votación abierta
-- **THEN** el sistema no lo permite
+#### Scenario: Categories locked
+- **WHEN** an admin tries to add or delete a category while voting is open
+- **THEN** the system does not allow it
 
-### Requirement: Fases del concurso
-La sala SHALL pasar por las fases lobby → votación → resultados, y solo los admins cambian de fase. Para abrir la votación MUST existir al menos 1 categoría, al menos 1 concursante y al menos 2 participantes.
+### Requirement: Contest phases
+The room SHALL go through the phases lobby → voting → results, and only admins change the phase. To open voting there MUST be at least 1 category, at least 1 candidate and at least 2 participants.
 
-#### Scenario: Empezar sin categorías
-- **WHEN** un admin intenta empezar la votación sin categorías
-- **THEN** el botón aparece deshabilitado con un indicador de lo que falta
+#### Scenario: Start without categories
+- **WHEN** an admin tries to start voting without categories
+- **THEN** the button is disabled and shows what is missing
 
-#### Scenario: Empezar la votación
-- **WHEN** un admin pulsa "Votar" cumpliendo los requisitos
-- **THEN** todos los dispositivos pasan a la pantalla de votación a la vez
+#### Scenario: Start voting
+- **WHEN** an admin taps the vote button and the requirements are met
+- **THEN** every device moves to the voting screen at the same time
 
-### Requirement: Escala de puntuación
-Cada nota SHALL ser un valor entre 0 y 10, ambos incluidos, en pasos de 0,25 (por ejemplo 7,25). El sistema MUST rechazar cualquier otro valor y MUST mostrar las notas con coma decimal.
+### Requirement: Score scale
+Each score SHALL be a value between 0 and 10, both included, in 0.25 steps (for example 7.25). The system MUST reject any other value and MUST display scores using the UI language's decimal separator.
 
-#### Scenario: Nota válida
-- **WHEN** un votante asigna 7,25 a un concursante en una categoría
-- **THEN** la nota se guarda y se muestra como "7,25"
+#### Scenario: Valid score
+- **WHEN** a voter gives a candidate 7.25 in a category
+- **THEN** the score is saved and shown as 7.25 in the UI's number format
 
-#### Scenario: Nota fuera de la escala
-- **WHEN** un cliente envía una nota de 7,3 o de 10,25
-- **THEN** el sistema la rechaza
+#### Scenario: Score off the scale
+- **WHEN** a client sends a score of 7.3 or 10.25
+- **THEN** the system rejects it
 
-### Requirement: Qué puntúa cada votante
-Durante la votación, cada participante SHALL poder puntuar a cada concursante en cada categoría, excepto a sí mismo. Puntuar es opcional por concursante y categoría.
+### Requirement: What each voter scores
+During voting, each participant SHALL be able to score every candidate in every category, except themselves. Scoring is optional per candidate and category.
 
-#### Scenario: Sin autovoto
-- **WHEN** un concursante abre la pantalla de votación
-- **THEN** no aparece él mismo entre los concursantes a puntuar, y el sistema rechaza cualquier nota a sí mismo
+#### Scenario: No self-vote
+- **WHEN** a candidate opens the voting screen
+- **THEN** they do not appear among the candidates to score, and the system rejects any score for themselves
 
-### Requirement: Control de puntuación táctil
-La pantalla de votación SHALL permitir fijar cada nota con un deslizador de 0 a 10 que salta de 0,25 en 0,25 y con botones de −0,25 y +0,25, mostrando el valor en grande junto a un emoji que refleja la nota. Una nota sin asignar se muestra como "—" y se puede borrar.
+### Requirement: Touch score control
+The voting screen SHALL let voters set each score with a 0-10 slider that moves in 0.25 steps and with −0.25 and +0.25 buttons, showing the value in large type next to an emoji that reflects the score. An unset score is shown as "—" and can be cleared.
 
-#### Scenario: Ajuste fino
-- **WHEN** un votante tiene 7,00 y pulsa "+"
-- **THEN** la nota pasa a 7,25
+#### Scenario: Fine adjustment
+- **WHEN** a voter has 7.00 and taps "+"
+- **THEN** the score becomes 7.25
 
-### Requirement: Guardado y edición de notas
-Cada nota SHALL guardarse en el servidor en cuanto se cambia, sin botón de enviar, y el votante MAY modificarla o borrarla mientras la votación siga abierta.
+### Requirement: Saving and editing scores
+Each score SHALL be saved on the server as soon as it changes, with no submit button, and the voter MAY change or clear it while voting stays open.
 
-#### Scenario: Cambiar de opinión
-- **WHEN** un votante cambia una nota de 6,00 a 8,50 con la votación abierta
-- **THEN** solo cuenta la nota de 8,50
+#### Scenario: Change of mind
+- **WHEN** a voter changes a score from 6.00 to 8.50 while voting is open
+- **THEN** only the 8.50 score counts
 
-#### Scenario: Votación cerrada
-- **WHEN** un votante intenta cambiar una nota tras revelar los resultados
-- **THEN** el sistema rechaza el cambio
+#### Scenario: Voting closed
+- **WHEN** a voter tries to change a score after the results are revealed
+- **THEN** the system rejects the change
 
-### Requirement: Voto delegado
-Los admins SHALL poder puntuar en nombre de cualquier participante manual, seleccionando "Votar como" a ese participante. Las reglas de autovoto se aplican al participante representado.
+### Requirement: Proxy voting
+Admins SHALL be able to score on behalf of any manual participant by selecting "vote as" that participant. The self-vote rules apply to the represented participant.
 
-#### Scenario: Admin vota por la abuela
-- **WHEN** un admin elige "Votar como Abuela 👵" y puntúa a otros concursantes
-- **THEN** las notas cuentan como de la Abuela, y la Abuela no aparece entre los concursantes a puntuar en ese modo
+#### Scenario: Admin votes for Grandma
+- **WHEN** an admin selects "vote as Grandma 👵" and scores other candidates
+- **THEN** the scores count as Grandma's, and Grandma does not appear among the candidates to score in that mode
 
-### Requirement: Progreso y "Listo"
-Cada votante SHALL ver cuántas notas lleva del total posible y MAY marcarse como listo, pudiendo seguir editando mientras la votación esté abierta. Todos los participantes MUST ver quién está listo, y los admins además el progreso numérico de cada votante.
+### Requirement: Progress and "done"
+Each voter SHALL see how many scores they have given out of the total possible and MAY mark themselves as done, while still being able to edit until voting closes. All participants MUST see who is done, and admins also see each voter's numeric progress.
 
-#### Scenario: Marcar listo
-- **WHEN** un votante pulsa "Listo"
-- **THEN** todos ven un check junto a su avatar
+#### Scenario: Mark as done
+- **WHEN** a voter taps the done button
+- **THEN** everyone sees a check mark next to their avatar
 
-#### Scenario: Progreso para admins
-- **WHEN** un admin mira la lista durante la votación
-- **THEN** ve junto a cada votante cuántas notas lleva, por ejemplo "7/12"
+#### Scenario: Progress for admins
+- **WHEN** an admin looks at the list during voting
+- **THEN** they see next to each voter how many scores they have given, for example "7/12"
 
-### Requirement: Anonimato de las notas
-Ningún participante, incluidos los admins, SHALL poder ver las notas individuales que ha dado otro participante. Solo se ven las propias y, para los admins, las emitidas en nombre de participantes manuales.
+### Requirement: Anonymous scores
+No participant, admins included, SHALL be able to see the individual scores given by another participant. Participants only see their own scores and, for admins, those cast on behalf of manual participants.
 
-#### Scenario: Notas ajenas ocultas
-- **WHEN** un admin consulta el estado de la sala durante la votación
-- **THEN** no recibe las notas que han puesto otros participantes con móvil
+#### Scenario: Other people's scores hidden
+- **WHEN** an admin reads the room state during voting
+- **THEN** they do not receive the scores given by other participants with a phone

@@ -1,45 +1,46 @@
 schema: spec-driven
 
 context: |
-  Language: es
-  All artifacts must be written in es.
-  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  Language: en
+  All artifacts must be written in English.
+  Keep OpenSpec structural headings and SHALL/MUST keywords as they are.
 
-  Producto: Cuadrillapp, PWA móvil para concursos de votación entre amigos (salas con
-  código, emoji + nombre, categorías, puntuaciones 0-10 en pasos de 0,25, ligas con
-  ranking). Proyecto personal de prueba, no producción: priorizar simplicidad.
+  Product: Cuadrillapp, a mobile PWA for voting contests among friends (rooms with a
+  code, emoji + name, categories, 0-10 scores in 0.25 steps, leagues with a ranking).
+  Personal test project, not production: favour simplicity.
 
-  Stack (monorepo políglota: proyecto uv para Python + workspace pnpm para el frontend):
-  - apps/server: Python 3.14 gestionado con uv. FastAPI (ASGI) + python-socketio
-    (AsyncServer en modo ASGI) servidos por Uvicorn con 1 worker. Pydantic v2 para
-    validar y para el contrato del protocolo; pydantic-settings para configuración.
-    Dominio puro (dataclasses, sin I/O) en `cuadrillapp.domain`.
+  Stack (polyglot monorepo: a uv project for Python + a pnpm workspace for the frontend):
+  - apps/server: Python 3.14 managed with uv. FastAPI (ASGI) + python-socketio
+    (AsyncServer in ASGI mode) served by Uvicorn with 1 worker. Pydantic v2 for
+    validation and for the protocol contract; pydantic-settings for configuration.
+    Pure domain (dataclasses, no I/O) in `cuadrillapp.domain`.
   - apps/web: React 19 + Vite + TypeScript, Tailwind CSS v4, Motion, lucide-react,
-    vite-plugin-pwa, socket.io-client. UI en español.
-  - packages/protocol: tipos TypeScript GENERADOS desde los modelos Pydantic (JSON
-    Schema) y la OpenAPI de FastAPI. Nunca se editan a mano (`make gen`).
-  - e2e: Playwright (TypeScript) contra la build de producción.
-  - Persistencia (solo ligas/ranking): SQLAlchemy 2.0 async + Alembic. Neon Postgres
-    en producción, SQLite en desarrollo/tests, Postgres de servicio en CI.
-    Auth: Authlib (OIDC Google) + cookie de sesión firmada.
-  - Hosting: una imagen Docker (build web con Node + runtime Python) como único
-    servicio web en Render (sirve API, sockets y estáticos).
+    vite-plugin-pwa, socket.io-client.
+  - packages/protocol: TypeScript types GENERATED from the Pydantic models (JSON
+    Schema) and FastAPI's OpenAPI. Never edited by hand (`make gen`).
+  - e2e: Playwright (TypeScript) against the production build.
+  - Persistence (leagues/ranking only): SQLAlchemy 2.0 async + Alembic. Neon Postgres
+    in production, SQLite in development/tests, a Postgres service container in CI.
+    Auth: Authlib (Google OIDC) + a signed session cookie.
+  - Hosting: one Docker image (web built with Node + Python runtime) as a single
+    Render web service (serves API, sockets and static files).
 
-  Convenciones:
-  - Código, identificadores y commits en inglés; textos de UI en español.
-  - Botones con icono + como mucho 1-2 palabras cortas; nada de frases largas.
-    Todos los textos de UI centralizados en apps/web/src/copy.ts.
-  - El servidor es la autoridad: el cliente envía comandos y renderiza snapshots.
-  - Python: Ruff (lint + formato), mypy strict, pytest + pytest-asyncio.
+  Conventions:
+  - Everything in the repository is written in English: code, comments, docs, specs,
+    commits and pull requests. The only exception is player-facing UI copy, which
+    lives in apps/web/src/copy.ts (currently Spanish).
+  - Buttons: an icon plus at most 1-2 short words; no long sentences.
+  - The server is the authority: the client sends commands and renders snapshots.
+  - Python: Ruff (lint + format), mypy strict, pytest + pytest-asyncio.
     Web: Biome, tsc, Vitest.
-  - `make verify` = gen-check + lint + typecheck + tests (Python y web) + build + e2e.
-  - Nunca push directo a main: rama + PR + CI verde. Main se despliega solo.
+  - `make verify` = gen-check + lint + typecheck + tests (Python and web) + build + e2e.
+  - Never push directly to main: branch + PR + green CI. Main deploys itself.
 
 rules:
   proposal:
-    - Indicar siempre qué queda fuera de alcance.
+    - Always state what is out of scope.
   specs:
-    - Describir comportamiento observable; nada de nombres de librerías en los specs.
+    - Describe observable behaviour; no library names in specs.
   tasks:
-    - Tareas pequeñas (una sesión), cada una con su verificación concreta.
-    - Cada grupo incluye sus propios tests; no dejar los tests para el final.
+    - Small tasks (one session each), each with its own concrete verification.
+    - Every group includes its own tests; never leave tests for the end.
