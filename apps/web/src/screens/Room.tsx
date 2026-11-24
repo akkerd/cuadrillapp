@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router";
 import { ProfileForm } from "../components/ProfileForm";
 import { Button, Card } from "../components/ui";
 import { copy, errorText } from "../copy";
+import { useWakeLock } from "../hooks/device";
 import { normalizeCode } from "../lib/format";
 import { forgetRoom, rememberSeat } from "../lib/session";
 import { act, rejoin, send, setActiveRoom } from "../lib/socket";
@@ -39,6 +40,8 @@ export function RoomScreen() {
     }
     void send("room:peek", { code }).then((result) => setPeek(result.ok ? result.data : "missing"));
   }, [online, inRoom, exit, hasSeat, code]);
+
+  useWakeLock(inRoom);
 
   const goHome = () => {
     forgetRoom(code);

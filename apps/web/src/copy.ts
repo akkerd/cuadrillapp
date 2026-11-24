@@ -8,6 +8,8 @@ export const copy = {
   join: "Unirse",
   enter: "Entrar",
   codePlaceholder: "CÓDIGO",
+  install: "Instalar",
+  fullscreen: "Pantalla completa",
   home: "Inicio",
   back: "Atrás",
   close: "Cerrar",
@@ -67,10 +69,19 @@ export const copy = {
   reopen: "Reabrir",
   again: "Otra",
   againConfirm: "¿Otra ronda? Se borran las notas 🔁",
+  waking: "Despertando…",
+  connectionLost: "Sin conexión",
+  update: "Actualizar",
+  newVersion: "Nueva versión ✨",
   gone: {
     kicked: "Fuera 👋",
     closed: "Sala cerrada 💤",
     replaced: "Abierta en otro sitio 📱",
+  },
+  iosInstall: {
+    title: "Instalar 📲",
+    step1: "Compartir",
+    step2: "Añadir a inicio",
   },
 } as const;
 
