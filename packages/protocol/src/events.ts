@@ -3,8 +3,9 @@
 import type * as P from "./generated";
 
 export type Role = "candidate" | "voter";
-export type Phase = "lobby";
-export type ErrorCode = "INVALID" | "RATE_LIMITED" | "ROOM_NOT_FOUND" | "ROOM_FULL" | "TOO_MANY_ROOMS" | "NOT_IN_ROOM" | "BAD_TOKEN" | "NAME_TAKEN" | "FORBIDDEN" | "NOT_FOUND" | "NOT_MANUAL" | "LAST_ADMIN";
+export type Phase = "lobby" | "voting";
+export type StartRequirement = "categories" | "candidates" | "participants";
+export type ErrorCode = "INVALID" | "RATE_LIMITED" | "ROOM_NOT_FOUND" | "ROOM_FULL" | "TOO_MANY_ROOMS" | "NOT_IN_ROOM" | "BAD_TOKEN" | "NAME_TAKEN" | "FORBIDDEN" | "WRONG_PHASE" | "NOT_FOUND" | "NOT_CANDIDATE" | "NOT_MANUAL" | "SELF_VOTE" | "LAST_ADMIN" | "TOO_MANY_CATEGORIES" | "START_REQUIREMENTS";
 export type ClientErrorCode = "TIMEOUT" | "DISCONNECTED";
 export type AnyErrorCode = ErrorCode | ClientErrorCode;
 
@@ -21,6 +22,13 @@ export interface ClientCommands {
   "participant:kick": { payload: P.ParticipantKick; data: null };
   "admin:set": { payload: P.AdminSet; data: null };
   "manual:add": { payload: P.ManualAdd; data: null };
+  "category:add": { payload: P.CategoryAdd; data: null };
+  "category:update": { payload: P.CategoryUpdate; data: null };
+  "category:delete": { payload: P.CategoryDelete; data: null };
+  "category:move": { payload: P.CategoryMove; data: null };
+  "voting:start": { payload: P.VotingStart; data: null };
+  "score:set": { payload: P.ScoreSet; data: null };
+  "voter:done": { payload: P.VoterDone; data: null };
 }
 
 export interface ServerEvents {
@@ -29,4 +37,4 @@ export interface ServerEvents {
   "room:replaced": P.ReplacedEvent;
 }
 
-export const ERROR_CODES: readonly ErrorCode[] = ["INVALID", "RATE_LIMITED", "ROOM_NOT_FOUND", "ROOM_FULL", "TOO_MANY_ROOMS", "NOT_IN_ROOM", "BAD_TOKEN", "NAME_TAKEN", "FORBIDDEN", "NOT_FOUND", "NOT_MANUAL", "LAST_ADMIN"];
+export const ERROR_CODES: readonly ErrorCode[] = ["INVALID", "RATE_LIMITED", "ROOM_NOT_FOUND", "ROOM_FULL", "TOO_MANY_ROOMS", "NOT_IN_ROOM", "BAD_TOKEN", "NAME_TAKEN", "FORBIDDEN", "WRONG_PHASE", "NOT_FOUND", "NOT_CANDIDATE", "NOT_MANUAL", "SELF_VOTE", "LAST_ADMIN", "TOO_MANY_CATEGORIES", "START_REQUIREMENTS"];

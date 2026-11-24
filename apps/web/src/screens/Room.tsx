@@ -13,6 +13,7 @@ import { storage } from "../lib/storage";
 import { useStore } from "../store";
 import { defaultProfile, Screen } from "./Create";
 import { Lobby } from "./Lobby";
+import { Voting } from "./Voting";
 
 export function RoomScreen() {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ export function RoomScreen() {
 
   if (exit) return <Gone text={copy.gone[exit.reason]} onHome={goHome} />;
   if (snapshot?.phase === "lobby") return <Lobby snapshot={snapshot} />;
+  if (snapshot?.phase === "voting") return <Voting snapshot={snapshot} />;
   if (peek === "missing") return <Gone text={errorText.ROOM_NOT_FOUND} onHome={goHome} />;
   if (hasSeat || peek === null) return <Loading />;
 

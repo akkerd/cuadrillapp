@@ -51,6 +51,47 @@ body {
   padding-right: max(env(safe-area-inset-right), 16px);
 }
 
+/* Score slider: thick track and a sticker-like thumb. */
+.score-range {
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  touch-action: pan-y;
+}
+.score-range::-webkit-slider-runnable-track {
+  height: 14px;
+  border-radius: 999px;
+  border: 3px solid var(--color-ink);
+  background: linear-gradient(90deg, var(--color-bubblegum), var(--color-sun), var(--color-mint));
+}
+.score-range::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  border: 3px solid var(--color-ink);
+  background: linear-gradient(90deg, var(--color-bubblegum), var(--color-sun), var(--color-mint));
+}
+.score-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 34px;
+  height: 34px;
+  margin-top: -13px;
+  border-radius: 999px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-hard-sm);
+}
+.score-range::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-paper);
+}
+.score-range[data-empty="true"]::-webkit-slider-thumb {
+  background: #d9d2f0;
+}
+
 :focus-visible {
   outline: 3px solid var(--color-sun);
   outline-offset: 3px;

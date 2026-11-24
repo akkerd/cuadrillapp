@@ -11,6 +11,47 @@ export interface AdminSet {
 }
 /**
  * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "CategoryAdd".
+ */
+export interface CategoryAdd {
+  emoji: string;
+  name: string;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "CategoryDelete".
+ */
+export interface CategoryDelete {
+  categoryId: string;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "CategoryMove".
+ */
+export interface CategoryMove {
+  categoryId: string;
+  direction: -1 | 1;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "CategoryUpdate".
+ */
+export interface CategoryUpdate {
+  categoryId: string;
+  emoji: string;
+  name: string;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "CategoryView".
+ */
+export interface CategoryView {
+  emoji: string;
+  id: string;
+  name: string;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
  * via the `definition` "JoinResult".
  */
 export interface JoinResult {
@@ -41,6 +82,15 @@ export interface ManualAdd {
 export interface Me {
   isAdmin: boolean;
   participantId: string;
+  progress: Progress;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "Progress".
+ */
+export interface Progress {
+  given: number;
+  total: number;
 }
 /**
  * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
@@ -67,11 +117,13 @@ export interface ParticipantUpdate {
  */
 export interface ParticipantView {
   connected: boolean;
+  done: boolean;
   emoji: string;
   id: string;
   isAdmin: boolean;
   isManual: boolean;
   name: string;
+  progress: Progress | null;
   role: "candidate" | "voter";
 }
 /**
@@ -81,7 +133,7 @@ export interface ParticipantView {
 export interface PeekResult {
   code: string;
   full: boolean;
-  phase: "lobby";
+  phase: "lobby" | "voting";
   title: string;
 }
 /**
@@ -142,12 +194,46 @@ export interface RoomRejoin {
  * via the `definition` "RoomSnapshot".
  */
 export interface RoomSnapshot {
+  categories: CategoryView[];
   code: string;
   me: Me;
+  myScores: ScoreView[];
   participants: ParticipantView[];
-  phase: "lobby";
+  phase: "lobby" | "voting";
+  proxyScores: ScoreView[];
+  startCheck: StartCheck;
   title: string;
   version: number;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "ScoreView".
+ */
+export interface ScoreView {
+  candidateId: string;
+  categoryId: string;
+  quarters: number;
+  voterId: string;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "StartCheck".
+ */
+export interface StartCheck {
+  missing: ("categories" | "candidates" | "participants")[];
+  ready: boolean;
+}
+/**
+ * Set (or clear with `quarters: null`) a score in quarter points.
+ *
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "ScoreSet".
+ */
+export interface ScoreSet {
+  asParticipantId?: string | null;
+  candidateId: string;
+  categoryId: string;
+  quarters: number | null;
 }
 /**
  * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
@@ -156,3 +242,16 @@ export interface RoomSnapshot {
 export interface TitleSet {
   title: string;
 }
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "VoterDone".
+ */
+export interface VoterDone {
+  asParticipantId?: string | null;
+  done: boolean;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "VotingStart".
+ */
+export interface VotingStart {}

@@ -50,6 +50,21 @@ async def test_invalid_data_leaves_room_unchanged(live: Live) -> None:
     assert live.hub.store.get(code).version == before  # type: ignore[union-attr]
 
 
+async def test_other_players_scores_never_leave_the_server(live: Live) -> None:
+    _, admin, (leo, sara) = await room_with(live, "Leo", "Sara")
+    await admin.ok("category:add", {"emoji": "😂", "name": "Gracioso"})
+    await admin.ok("voting:start")
+    sara_id = sara.state["me"]["participantId"]  # type: ignore[index]
+    await leo.ok("score:set", {"candidateId": sara_id, "categoryId": "c1", "quarters": 29})
+    admin_state = await admin.wait_for(lambda s: s["phase"] == "voting")
+    leo_state = await leo.wait_for(lambda s: len(s["myScores"]) == 1)
+    assert admin_state["myScores"] == []
+    assert leo_state["myScores"][0]["quarters"] == 29
+    sara_state = await sara.wait_for(lambda s: s["phase"] == "voting")
+    assert sara_state["myScores"] == []
+    assert sara_state["proxyScores"] == []
+
+
 async def test_reconnect_recovers_the_seat(live: Live) -> None:
     code, admin, (leo,) = await room_with(live, "Leo")
     token_state = await leo.wait_for(lambda s: s["code"] == code)
@@ -91,16 +106,19 @@ async def test_kick_notifies_the_kicked_player(live: Live) -> None:
     assert result == {"ok": False, "error": "NOT_IN_ROOM"}
 
 
-async def test_concurrent_commands_are_all_kept(live: Live) -> None:
-    code, admin, (leo,) = await room_with(live, "Leo")
-    await admin.ok("admin:set", {"participantId": "p2", "isAdmin": True})
+async def test_concurrent_scores_are_all_kept(live: Live) -> None:
+    code, admin, (leo, sara) = await room_with(live, "Leo", "Sara")
+    for i in range(4):
+        await admin.ok("category:add", {"emoji": "⭐", "name": f"Cat {i}"})
+    await admin.ok("voting:start")
+    ids = {p["name"]: p["id"] for p in (await admin.wait_for(lambda s: True))["participants"]}
     calls = [
-        player.ok("manual:add", profile(f"{prefix}{i}"))
-        for player, prefix in ((admin, "A"), (leo, "L"))
-        for i in range(8)
+        player.ok("score:set", {"candidateId": target, "categoryId": f"c{cat}", "quarters": 40})
+        for player, target in ((leo, ids["Sara"]), (sara, ids["Leo"]), (admin, ids["Leo"]))
+        for cat in range(1, 5)
     ]
     await asyncio.gather(*calls)
-    assert len(live.hub.store.get(code).participants) == 18  # type: ignore[union-attr]
+    assert len(live.hub.store.get(code).scores) == 12  # type: ignore[union-attr]
 
 
 async def test_action_burst_is_rate_limited(live: Live) -> None:

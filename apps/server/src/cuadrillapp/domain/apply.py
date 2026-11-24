@@ -8,7 +8,9 @@ import copy
 import secrets
 
 from cuadrillapp.constants import (
+    CATEGORY_NAME_MAX_LENGTH,
     EMOJIS,
+    MAX_CATEGORIES,
     MAX_PARTICIPANTS,
     NAME_MAX_LENGTH,
     TITLE_MAX_LENGTH,
@@ -22,7 +24,7 @@ from cuadrillapp.domain.effects import (
     StartGrace,
 )
 from cuadrillapp.domain.errors import DomainError, ErrorCode
-from cuadrillapp.domain.models import Participant, Role, Room
+from cuadrillapp.domain.models import Category, Participant, Role, Room
 from cuadrillapp.domain.names import clean_display, normalize_name
 from cuadrillapp.protocol import commands as c
 from cuadrillapp.protocol.results import JoinResult, RejoinResult
@@ -111,6 +113,14 @@ def _route(room: Room, actor: Participant, cmd: c.Command | Disconnect | GraceEx
             return _set_admin(room, actor, cmd)
         case c.ManualAdd():
             return _add_manual(room, actor, cmd)
+        case c.CategoryAdd() | c.CategoryUpdate() | c.CategoryDelete() | c.CategoryMove():
+            return _edit_categories(room, actor, cmd)
+        case c.VotingStart():
+            return _change_phase(room, actor, cmd)
+        case c.ScoreSet():
+            return _set_score(room, actor, cmd)
+        case c.VoterDone():
+            return _set_done(room, actor, cmd)
         case _:
             return _err("INVALID")
 
@@ -135,6 +145,8 @@ def _update_participant(room: Room, actor: Participant, cmd: c.ParticipantUpdate
     edits_profile = cmd.name is not None or cmd.emoji is not None
     if edits_profile and not is_self and not target.is_manual:
         return _err("FORBIDDEN")
+    if cmd.role is not None and cmd.role != target.role and room.phase != "lobby":
+        return _err("WRONG_PHASE")
     name = target.name
     if cmd.name is not None:
         validated = _validate_name(room, cmd.name, exclude_id=target.id)
@@ -187,7 +199,116 @@ def _add_manual(room: Room, actor: Participant, cmd: c.ManualAdd) -> Outcome:
     return Applied(room)
 
 
+def _edit_categories(
+    room: Room,
+    actor: Participant,
+    cmd: c.CategoryAdd | c.CategoryUpdate | c.CategoryDelete | c.CategoryMove,
+) -> Outcome:
+    if not actor.is_admin:
+        return _err("FORBIDDEN")
+    if room.phase != "lobby":
+        return _err("WRONG_PHASE")
+    match cmd:
+        case c.CategoryAdd():
+            if len(room.categories) >= MAX_CATEGORIES:
+                return _err("TOO_MANY_CATEGORIES")
+            name = clean_display(cmd.name)
+            if not 1 <= len(name) <= CATEGORY_NAME_MAX_LENGTH:
+                return _err("INVALID")
+            room.categories.append(Category(f"c{room.next_category_seq}", cmd.emoji, name))
+            room.next_category_seq += 1
+        case c.CategoryUpdate():
+            category = room.category(cmd.category_id)
+            if category is None:
+                return _err("NOT_FOUND")
+            name = clean_display(cmd.name)
+            if not 1 <= len(name) <= CATEGORY_NAME_MAX_LENGTH:
+                return _err("INVALID")
+            category.emoji = cmd.emoji
+            category.name = name
+        case c.CategoryDelete():
+            category = room.category(cmd.category_id)
+            if category is None:
+                return _err("NOT_FOUND")
+            room.categories.remove(category)
+        case c.CategoryMove():
+            category = room.category(cmd.category_id)
+            if category is None:
+                return _err("NOT_FOUND")
+            index = room.categories.index(category)
+            target = index + cmd.direction
+            if 0 <= target < len(room.categories):
+                cats = room.categories
+                cats[index], cats[target] = cats[target], cats[index]
+    return Applied(room)
+
+
+def _change_phase(
+    room: Room,
+    actor: Participant,
+    cmd: c.VotingStart,
+) -> Outcome:
+    if not actor.is_admin:
+        return _err("FORBIDDEN")
+    match cmd:
+        case c.VotingStart():
+            if room.phase != "lobby":
+                return _err("WRONG_PHASE")
+            if room.start_missing():
+                return _err("START_REQUIREMENTS")
+            _reset_done(room)
+            room.phase = "voting"
+    return Applied(room)
+
+
+def _set_score(room: Room, actor: Participant, cmd: c.ScoreSet) -> Outcome:
+    if room.phase != "voting":
+        return _err("WRONG_PHASE")
+    voter = _resolve_voter(room, actor, cmd.as_participant_id)
+    if isinstance(voter, DomainError):
+        return voter
+    candidate = room.participants.get(cmd.candidate_id)
+    if candidate is None or room.category(cmd.category_id) is None:
+        return _err("NOT_FOUND")
+    if candidate.role != "candidate":
+        return _err("NOT_CANDIDATE")
+    if candidate.id == voter.id:
+        return _err("SELF_VOTE")
+    key = (voter.id, candidate.id, cmd.category_id)
+    if cmd.quarters is None:
+        room.scores.pop(key, None)
+    else:
+        room.scores[key] = cmd.quarters
+    return Applied(room)
+
+
+def _set_done(room: Room, actor: Participant, cmd: c.VoterDone) -> Outcome:
+    if room.phase != "voting":
+        return _err("WRONG_PHASE")
+    voter = _resolve_voter(room, actor, cmd.as_participant_id)
+    if isinstance(voter, DomainError):
+        return voter
+    voter.done = cmd.done
+    return Applied(room)
+
+
 # --- Helpers -------------------------------------------------------------------------
+
+
+def _resolve_voter(
+    room: Room, actor: Participant, as_participant_id: str | None
+) -> Participant | DomainError:
+    """Who votes: the actor, or a manual participant an admin votes for."""
+    if as_participant_id is None or as_participant_id == actor.id:
+        return actor
+    if not actor.is_admin:
+        return _err("FORBIDDEN")
+    represented = room.participants.get(as_participant_id)
+    if represented is None:
+        return _err("NOT_FOUND")
+    if not represented.is_manual:
+        return _err("NOT_MANUAL")
+    return represented
 
 
 def _validate_name(room: Room, raw: str, *, exclude_id: str | None = None) -> str | DomainError:
@@ -228,8 +349,16 @@ def _add_participant(
 
 
 def _remove(room: Room, participant_id: str) -> None:
-    """Remove a participant from the room."""
+    """Remove a participant and drop the scores they gave and received."""
     del room.participants[participant_id]
+    room.scores = {
+        key: value for key, value in room.scores.items() if participant_id not in (key[0], key[1])
+    }
+
+
+def _reset_done(room: Room) -> None:
+    for participant in room.participants.values():
+        participant.done = False
 
 
 def _ensure_admin(room: Room) -> None:

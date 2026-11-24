@@ -63,3 +63,21 @@ def fails(
     outcome = apply_command(room, actor, cmd, now)
     assert isinstance(outcome, DomainError), outcome
     return outcome.code
+
+
+def voting_room(*others: str | tuple[str, Role]) -> tuple[Room, dict[str, str]]:
+    """Room already voting with two categories (c1 Gracioso, c2 Estilo)."""
+    room, ids = new_room("Ana", *(others or ("Leo", "Sara")))
+    admin = ids["Ana"]
+    room = run(room, admin, c.CategoryAdd(emoji="😂", name="Gracioso"))
+    room = run(room, admin, c.CategoryAdd(emoji="👗", name="Estilo"))
+    room = run(room, admin, c.VotingStart())
+    return room, ids
+
+
+def score(room: Room, voter: str, candidate: str, category: str, quarters: int | None) -> Room:
+    return run(
+        room,
+        voter,
+        c.ScoreSet(candidate_id=candidate, category_id=category, quarters=quarters),
+    )

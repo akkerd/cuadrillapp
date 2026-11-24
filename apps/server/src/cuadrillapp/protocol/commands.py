@@ -1,11 +1,13 @@
 """Client → server commands. One model per Socket.IO event."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import StringConstraints
+from pydantic import Field, StringConstraints
 
 from cuadrillapp.constants import (
+    CATEGORY_NAME_MAX_LENGTH,
     EMOJI_MAX_LENGTH,
+    MAX_QUARTERS,
     NAME_MAX_LENGTH,
     TITLE_MAX_LENGTH,
 )
@@ -19,11 +21,16 @@ Name = Annotated[
 Emoji = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=EMOJI_MAX_LENGTH)
 ]
+CategoryName = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=CATEGORY_NAME_MAX_LENGTH),
+]
 Title = Annotated[
     str, StringConstraints(strip_whitespace=True, min_length=1, max_length=TITLE_MAX_LENGTH)
 ]
 RawCode = Annotated[str, StringConstraints(min_length=1, max_length=20)]
 Token = Annotated[str, StringConstraints(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")]
+Quarters = Annotated[int, Field(ge=0, le=MAX_QUARTERS)]
 
 
 class Command(Incoming):
@@ -81,3 +88,41 @@ class AdminSet(Command):
 
 class ManualAdd(ProfileFields):
     pass
+
+
+class CategoryAdd(Command):
+    emoji: Emoji
+    name: CategoryName
+
+
+class CategoryUpdate(Command):
+    category_id: Id
+    emoji: Emoji
+    name: CategoryName
+
+
+class CategoryDelete(Command):
+    category_id: Id
+
+
+class CategoryMove(Command):
+    category_id: Id
+    direction: Literal[-1, 1]
+
+
+class VotingStart(Command):
+    pass
+
+
+class ScoreSet(Command):
+    """Set (or clear with `quarters: null`) a score in quarter points."""
+
+    candidate_id: Id
+    category_id: Id
+    quarters: Quarters | None
+    as_participant_id: Id | None = None
+
+
+class VoterDone(Command):
+    done: bool
+    as_participant_id: Id | None = None

@@ -8,8 +8,9 @@ from factories import NOW, fails, new_room, run
 
 def test_action_without_permission() -> None:
     room, ids = new_room("Ana", "Leo")
-    assert fails(room, ids["Leo"], c.ManualAdd(name="Uncle", emoji="🧙")) == "FORBIDDEN"
-    assert len(room.participants) == 2
+    room = run(room, ids["Ana"], c.CategoryAdd(emoji="😂", name="Gracioso"))
+    assert fails(room, ids["Leo"], c.VotingStart()) == "FORBIDDEN"
+    assert room.phase == "lobby"
 
 
 def test_grant_admin() -> None:
