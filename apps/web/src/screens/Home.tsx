@@ -1,10 +1,11 @@
 import { LIMITS } from "@cuadrillapp/protocol";
-import { ArrowRight, DoorOpen, Plus } from "lucide-react";
+import { ArrowRight, DoorOpen, Download, Maximize, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { Button, IconButton } from "../components/ui";
+import { Button, IconButton, Sheet } from "../components/ui";
 import { copy } from "../copy";
+import { canFullscreen, toggleFullscreen, useInstall } from "../hooks/device";
 import { normalizeCode } from "../lib/format";
 
 const STICKERS = ["🦄", "🌮", "🐸", "🤠", "👽"];
@@ -13,6 +14,8 @@ export function Home() {
   const navigate = useNavigate();
   const [joining, setJoining] = useState(false);
   const [code, setCode] = useState("");
+  const [iosHelp, setIosHelp] = useState(false);
+  const install = useInstall();
   const codeInput = useRef<HTMLInputElement>(null);
 
   // Focus the field when it opens: the user has just tapped Join.
@@ -28,6 +31,17 @@ export function Home() {
 
   return (
     <main className="safe-area mx-auto flex min-h-dvh max-w-lg flex-col">
+      <div className="flex justify-end">
+        {canFullscreen() && (
+          <IconButton
+            label={copy.fullscreen}
+            icon={Maximize}
+            tone="paper"
+            onClick={() => void toggleFullscreen()}
+          />
+        )}
+      </div>
+
       <div className="flex flex-1 flex-col items-center justify-center gap-6 py-8 text-center">
         <div className="flex gap-1 text-5xl" aria-hidden>
           {STICKERS.map((emoji, index) => (
@@ -80,7 +94,33 @@ export function Home() {
             {copy.join}
           </Button>
         )}
+        {install.mode && (
+          <Button
+            tone="paper"
+            icon={Download}
+            onClick={() => (install.mode === "ios" ? setIosHelp(true) : void install.install())}
+          >
+            {copy.install}
+          </Button>
+        )}
       </div>
+
+      <Sheet open={iosHelp} onClose={() => setIosHelp(false)} title={copy.iosInstall.title}>
+        <ol className="grid gap-3 text-xl font-semibold">
+          <li className="flex items-center gap-3">
+            <span className="grid size-12 place-items-center rounded-full border-[3px] border-ink bg-sun">
+              1
+            </span>
+            <span aria-hidden>⬆️</span> {copy.iosInstall.step1}
+          </li>
+          <li className="flex items-center gap-3">
+            <span className="grid size-12 place-items-center rounded-full border-[3px] border-ink bg-mint">
+              2
+            </span>
+            <span aria-hidden>➕</span> {copy.iosInstall.step2}
+          </li>
+        </ol>
+      </Sheet>
     </main>
   );
 }
