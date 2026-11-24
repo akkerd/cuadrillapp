@@ -1,0 +1,19 @@
+"""Room storage interface.
+
+Only the in-memory implementation exists today; a Redis implementation would allow
+several instances (see design.md, "Scaling path").
+"""
+
+from collections.abc import Iterator
+from typing import Protocol
+
+from cuadrillapp.domain.models import Room
+
+
+class RoomStore(Protocol):
+    def get(self, code: str) -> Room | None: ...
+    def put(self, room: Room) -> None: ...
+    def delete(self, code: str) -> None: ...
+    def exists(self, code: str) -> bool: ...
+    def codes(self) -> Iterator[str]: ...
+    def count(self) -> int: ...

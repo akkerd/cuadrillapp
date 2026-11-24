@@ -2,6 +2,7 @@
 .DEFAULT_GOAL := help
 SHELL := bash
 SERVER := apps/server
+PROTOCOL := packages/protocol
 PLAYWRIGHT_DEPS ?=
 
 help: ## List the commands
@@ -16,6 +17,13 @@ dev: ## Backend with reload on :8000 + Vite on http://localhost:5173
 	@trap 'kill 0' EXIT; \
 	(cd $(SERVER) && uv run uvicorn cuadrillapp.main:create_app --factory --reload --port 8000) & \
 	pnpm --filter web dev --host
+
+gen: ## Regenerate packages/protocol from the Pydantic models
+	cd $(SERVER) && uv run python -m cuadrillapp.protocol.export ../../$(PROTOCOL)
+	pnpm --filter @cuadrillapp/protocol gen
+
+gen-check: ## Fail if packages/protocol is out of date
+	./scripts/gen-check.sh
 
 lint: ## Ruff + Biome
 	cd $(SERVER) && uv run ruff check . && uv run ruff format --check .
@@ -35,6 +43,6 @@ build: ## Production build of the PWA
 e2e: build ## Playwright (emulated phone) against the build served by Uvicorn
 	pnpm --filter e2e test
 
-verify: lint typecheck test e2e ## Everything CI requires before merging
+verify: gen-check lint typecheck test e2e ## Everything CI requires before merging
 
-.PHONY: help setup dev lint typecheck test build e2e verify
+.PHONY: help setup dev gen gen-check lint typecheck test build e2e verify

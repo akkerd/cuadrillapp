@@ -7,6 +7,7 @@ dependencies = [
     "fastapi>=0.165.0",
     "pydantic>=2.14.4",
     "pydantic-settings>=2.16.3",
+    "python-socketio>=5.18.1",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -20,6 +21,7 @@ dev = [
     "mypy>=2.4.1",
     "pytest>=9.2.0",
     "pytest-asyncio>=1.5.0",
+    "python-socketio[asyncio-client]>=5.18.1",
     "ruff>=0.17.6",
 ]
 
