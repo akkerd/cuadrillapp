@@ -81,6 +81,33 @@
       "title": "CategoryMove",
       "type": "object"
     },
+    "CategoryResultView": {
+      "properties": {
+        "categoryId": {
+          "type": "string"
+        },
+        "emoji": {
+          "type": "string"
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/RankEntryView"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "categoryId",
+        "emoji",
+        "name",
+        "entries"
+      ],
+      "title": "CategoryResultView",
+      "type": "object"
+    },
     "CategoryUpdate": {
       "additionalProperties": false,
       "properties": {
@@ -355,7 +382,8 @@
         "phase": {
           "enum": [
             "lobby",
-            "voting"
+            "voting",
+            "results"
           ],
           "type": "string"
         },
@@ -388,6 +416,52 @@
       "title": "Progress",
       "type": "object"
     },
+    "RankEntryView": {
+      "properties": {
+        "candidateId": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer"
+        },
+        "emoji": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "candidateId",
+        "name",
+        "emoji",
+        "score",
+        "count",
+        "position"
+      ],
+      "title": "RankEntryView",
+      "type": "object"
+    },
     "RejoinResult": {
       "properties": {
         "participantId": {
@@ -410,6 +484,28 @@
         "code"
       ],
       "title": "ReplacedEvent",
+      "type": "object"
+    },
+    "ResultsView": {
+      "properties": {
+        "byCategory": {
+          "items": {
+            "$ref": "#/$defs/CategoryResultView"
+          },
+          "type": "array"
+        },
+        "overall": {
+          "items": {
+            "$ref": "#/$defs/RankEntryView"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "overall",
+        "byCategory"
+      ],
+      "title": "ResultsView",
       "type": "object"
     },
     "RoomCreate": {
@@ -548,7 +644,8 @@
         "phase": {
           "enum": [
             "lobby",
-            "voting"
+            "voting",
+            "results"
           ],
           "type": "string"
         },
@@ -557,6 +654,16 @@
             "$ref": "#/$defs/ScoreView"
           },
           "type": "array"
+        },
+        "results": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultsView"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "startCheck": {
           "$ref": "#/$defs/StartCheck"
@@ -578,9 +685,16 @@
         "categories",
         "myScores",
         "proxyScores",
+        "results",
         "startCheck"
       ],
       "title": "RoomSnapshot",
+      "type": "object"
+    },
+    "RoundNew": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "RoundNew",
       "type": "object"
     },
     "ScoreSet": {
@@ -722,6 +836,18 @@
         "done"
       ],
       "title": "VoterDone",
+      "type": "object"
+    },
+    "VotingReopen": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "VotingReopen",
+      "type": "object"
+    },
+    "VotingReveal": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "VotingReveal",
       "type": "object"
     },
     "VotingStart": {

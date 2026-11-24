@@ -3,7 +3,7 @@
 import type * as P from "./generated";
 
 export type Role = "candidate" | "voter";
-export type Phase = "lobby" | "voting";
+export type Phase = "lobby" | "voting" | "results";
 export type StartRequirement = "categories" | "candidates" | "participants";
 export type ErrorCode = "INVALID" | "RATE_LIMITED" | "ROOM_NOT_FOUND" | "ROOM_FULL" | "TOO_MANY_ROOMS" | "NOT_IN_ROOM" | "BAD_TOKEN" | "NAME_TAKEN" | "FORBIDDEN" | "WRONG_PHASE" | "NOT_FOUND" | "NOT_CANDIDATE" | "NOT_MANUAL" | "SELF_VOTE" | "LAST_ADMIN" | "TOO_MANY_CATEGORIES" | "START_REQUIREMENTS";
 export type ClientErrorCode = "TIMEOUT" | "DISCONNECTED";
@@ -27,6 +27,9 @@ export interface ClientCommands {
   "category:delete": { payload: P.CategoryDelete; data: null };
   "category:move": { payload: P.CategoryMove; data: null };
   "voting:start": { payload: P.VotingStart; data: null };
+  "voting:reveal": { payload: P.VotingReveal; data: null };
+  "voting:reopen": { payload: P.VotingReopen; data: null };
+  "round:new": { payload: P.RoundNew; data: null };
   "score:set": { payload: P.ScoreSet; data: null };
   "voter:done": { payload: P.VoterDone; data: null };
 }

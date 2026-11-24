@@ -5,12 +5,15 @@ Admins also receive each voter's progress and the scores cast on behalf of
 manual participants.
 """
 
-from cuadrillapp.domain.models import Participant, Room
+from cuadrillapp.domain.models import Participant, RankEntry, Room
 from cuadrillapp.protocol.snapshot import (
+    CategoryResultView,
     CategoryView,
     Me,
     ParticipantView,
     Progress,
+    RankEntryView,
+    ResultsView,
     RoomSnapshot,
     ScoreView,
     StartCheck,
@@ -45,6 +48,7 @@ def project_snapshot(room: Room, viewer_id: str) -> RoomSnapshot:
         categories=[CategoryView(id=c.id, emoji=c.emoji, name=c.name) for c in room.categories],
         my_scores=_scores(room, {viewer.id}),
         proxy_scores=_scores(room, manual_ids) if viewer.is_admin else [],
+        results=_results(room),
         start_check=StartCheck(ready=not room.start_missing(), missing=room.start_missing()),
     )
 
@@ -70,3 +74,31 @@ def _scores(room: Room, voters: set[str]) -> list[ScoreView]:
         for (voter, candidate, category), value in room.scores.items()
         if voter in voters
     ]
+
+
+def _results(room: Room) -> ResultsView | None:
+    if room.results is None:
+        return None
+    return ResultsView(
+        overall=[_entry(e) for e in room.results.overall],
+        by_category=[
+            CategoryResultView(
+                category_id=r.category_id,
+                emoji=r.emoji,
+                name=r.name,
+                entries=[_entry(e) for e in r.entries],
+            )
+            for r in room.results.by_category
+        ],
+    )
+
+
+def _entry(entry: RankEntry) -> RankEntryView:
+    return RankEntryView(
+        candidate_id=entry.candidate_id,
+        name=entry.name,
+        emoji=entry.emoji,
+        score=None if entry.score is None else round(float(entry.score), 4),
+        count=entry.count,
+        position=entry.position,
+    )

@@ -34,6 +34,27 @@ class ScoreView(Outgoing):
     quarters: int
 
 
+class RankEntryView(Outgoing):
+    candidate_id: str
+    name: str
+    emoji: str
+    score: float | None
+    count: int
+    position: int | None
+
+
+class CategoryResultView(Outgoing):
+    category_id: str
+    emoji: str
+    name: str
+    entries: list[RankEntryView]
+
+
+class ResultsView(Outgoing):
+    overall: list[RankEntryView]
+    by_category: list[CategoryResultView]
+
+
 class StartCheck(Outgoing):
     ready: bool
     missing: list[StartRequirement]
@@ -55,4 +76,5 @@ class RoomSnapshot(Outgoing):
     categories: list[CategoryView]
     my_scores: list[ScoreView]
     proxy_scores: list[ScoreView]
+    results: ResultsView | None
     start_check: StartCheck

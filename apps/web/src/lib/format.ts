@@ -10,6 +10,11 @@ export function formatQuarters(quarters: number): string {
   return scoreFormat.format(quarters / LIMITS.quartersPerPoint);
 }
 
+/** Mean in points → "8,33" */
+export function formatPoints(points: number): string {
+  return scoreFormat.format(points);
+}
+
 export function clampQuarters(quarters: number): number {
   return Math.min(LIMITS.maxQuarters, Math.max(0, Math.round(quarters)));
 }

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { addCategory, confirm, createRoom, joinByLink, phone, score } from "./helpers";
 
-test("contest: create, join and vote", async ({ page, browser }) => {
+test("full contest: create, join, vote, reveal and another round", async ({ page, browser }) => {
   const code = await createRoom(page, "Ana");
 
   // Leo joins via the link; Sara types the code in lowercase with spaces.
@@ -45,6 +45,29 @@ test("contest: create, join and vote", async ({ page, browser }) => {
   // Reloading mid-vote keeps the seat and the scores.
   await leo.reload();
   await expect(score(leo, "Gracioso", "Sara").value).toHaveText("7,25");
+
+  await page.getByRole("button", { name: "Revelar" }).click();
+  await confirm(page);
+  for (const p of [page, leo, sara]) {
+    await expect(p.getByLabel("Podio")).toBeVisible();
+  }
+  // Overall: Leo (9 + 8) / 2 = 8.50; Sara (7.25 + 6.5) / 2 = 6.88
+  const rows = page.getByTestId("result-score");
+  await expect(rows.nth(0)).toHaveText("8,50");
+  await expect(rows.nth(1)).toHaveText("6,88");
+  await expect(rows.nth(2)).toHaveText("Sin votos");
+  await page.getByRole("tab", { name: "Gracioso" }).click();
+  await expect(page.getByTestId("result-score").first()).toHaveText("9,00");
+  await page.waitForTimeout(2800);
+  await page.screenshot({ path: "test-results/shots/results.png", fullPage: true });
+
+  // Scores can no longer be changed.
+  await expect(leo.getByRole("group", { name: "Gracioso · Sara" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Otra" }).click();
+  await confirm(page);
+  await expect(page.getByRole("button", { name: "Votar" })).toBeEnabled();
+  await expect(sara.getByText("Esperando al admin…")).toBeVisible();
 });
 
 test("the profile is remembered for the next room", async ({ page }) => {

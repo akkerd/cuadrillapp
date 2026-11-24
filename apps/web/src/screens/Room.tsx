@@ -13,6 +13,7 @@ import { storage } from "../lib/storage";
 import { useStore } from "../store";
 import { defaultProfile, Screen } from "./Create";
 import { Lobby } from "./Lobby";
+import { Results } from "./Results";
 import { Voting } from "./Voting";
 
 export function RoomScreen() {
@@ -47,6 +48,7 @@ export function RoomScreen() {
   if (exit) return <Gone text={copy.gone[exit.reason]} onHome={goHome} />;
   if (snapshot?.phase === "lobby") return <Lobby snapshot={snapshot} />;
   if (snapshot?.phase === "voting") return <Voting snapshot={snapshot} />;
+  if (snapshot?.phase === "results") return <Results snapshot={snapshot} />;
   if (peek === "missing") return <Gone text={errorText.ROOM_NOT_FOUND} onHome={goHome} />;
   if (hasSeat || peek === null) return <Loading />;
 

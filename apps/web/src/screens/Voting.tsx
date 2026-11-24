@@ -1,11 +1,11 @@
 import type { ParticipantView, RoomSnapshot } from "@cuadrillapp/protocol";
-import { BarChart3, Check } from "lucide-react";
+import { BarChart3, Check, Eye } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Avatar } from "../components/Avatar";
 import { ParticipantRow } from "../components/Participants";
 import { RoomHeader } from "../components/RoomHeader";
 import { ScoreControl } from "../components/ScoreControl";
-import { Button, Card, IconButton, Sheet } from "../components/ui";
+import { Button, Card, ConfirmSheet, IconButton, Sheet } from "../components/ui";
 import { copy } from "../copy";
 import { cx } from "../lib/format";
 import { act } from "../lib/socket";
@@ -17,6 +17,7 @@ export function Voting({ snapshot }: { snapshot: RoomSnapshot }) {
   const isAdmin = snapshot.me.isAdmin;
   const manual = snapshot.participants.filter((p) => p.isManual);
   const [asId, setAsId] = useState<string | null>(null);
+  const [revealing, setRevealing] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
   const scores = useScores(snapshot, asId);
 
@@ -121,7 +122,20 @@ export function Voting({ snapshot }: { snapshot: RoomSnapshot }) {
         >
           {voter?.done ? copy.notDone : copy.done}
         </Button>
+        {isAdmin && (
+          <Button tone="pink" icon={Eye} onClick={() => setRevealing(true)}>
+            {copy.reveal}
+          </Button>
+        )}
       </footer>
+
+      <ConfirmSheet
+        open={revealing}
+        title={copy.revealConfirm}
+        tone="sun"
+        onClose={() => setRevealing(false)}
+        onConfirm={() => void act("voting:reveal", {})}
+      />
 
       <Sheet
         open={showProgress}

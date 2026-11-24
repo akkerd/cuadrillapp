@@ -34,6 +34,28 @@ export interface CategoryMove {
 }
 /**
  * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "CategoryResultView".
+ */
+export interface CategoryResultView {
+  categoryId: string;
+  emoji: string;
+  entries: RankEntryView[];
+  name: string;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "RankEntryView".
+ */
+export interface RankEntryView {
+  candidateId: string;
+  count: number;
+  emoji: string;
+  name: string;
+  position: number | null;
+  score: number | null;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
  * via the `definition` "CategoryUpdate".
  */
 export interface CategoryUpdate {
@@ -133,7 +155,7 @@ export interface ParticipantView {
 export interface PeekResult {
   code: string;
   full: boolean;
-  phase: "lobby" | "voting";
+  phase: "lobby" | "voting" | "results";
   title: string;
 }
 /**
@@ -149,6 +171,14 @@ export interface RejoinResult {
  */
 export interface ReplacedEvent {
   code: string;
+}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "ResultsView".
+ */
+export interface ResultsView {
+  byCategory: CategoryResultView[];
+  overall: RankEntryView[];
 }
 /**
  * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
@@ -199,8 +229,9 @@ export interface RoomSnapshot {
   me: Me;
   myScores: ScoreView[];
   participants: ParticipantView[];
-  phase: "lobby" | "voting";
+  phase: "lobby" | "voting" | "results";
   proxyScores: ScoreView[];
+  results: ResultsView | null;
   startCheck: StartCheck;
   title: string;
   version: number;
@@ -223,6 +254,11 @@ export interface StartCheck {
   missing: ("categories" | "candidates" | "participants")[];
   ready: boolean;
 }
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "RoundNew".
+ */
+export interface RoundNew {}
 /**
  * Set (or clear with `quarters: null`) a score in quarter points.
  *
@@ -250,6 +286,16 @@ export interface VoterDone {
   asParticipantId?: string | null;
   done: boolean;
 }
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "VotingReopen".
+ */
+export interface VotingReopen {}
+/**
+ * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
+ * via the `definition` "VotingReveal".
+ */
+export interface VotingReveal {}
 /**
  * This interface was referenced by `CuadrillappProtocol`'s JSON-Schema
  * via the `definition` "VotingStart".

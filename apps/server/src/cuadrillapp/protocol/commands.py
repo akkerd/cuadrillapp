@@ -114,6 +114,18 @@ class VotingStart(Command):
     pass
 
 
+class VotingReveal(Command):
+    pass
+
+
+class VotingReopen(Command):
+    pass
+
+
+class RoundNew(Command):
+    pass
+
+
 class ScoreSet(Command):
     """Set (or clear with `quarters: null`) a score in quarter points."""
 
