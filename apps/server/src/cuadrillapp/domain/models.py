@@ -1,12 +1,13 @@
 """Room state. Plain dataclasses, no I/O."""
 
 from dataclasses import dataclass, field
+from fractions import Fraction
 from typing import Literal
 
 from cuadrillapp.constants import DEFAULT_TITLE
 
 Role = Literal["candidate", "voter"]
-Phase = Literal["lobby", "voting"]
+Phase = Literal["lobby", "voting", "results"]
 StartRequirement = Literal["categories", "candidates", "participants"]
 ScoreKey = tuple[str, str, str]  # (voter_id, candidate_id, category_id)
 
@@ -42,6 +43,30 @@ class Category:
     name: str
 
 
+@dataclass(frozen=True, slots=True)
+class RankEntry:
+    candidate_id: str
+    name: str
+    emoji: str
+    score: Fraction | None
+    count: int
+    position: int | None
+
+
+@dataclass(frozen=True, slots=True)
+class CategoryResult:
+    category_id: str
+    emoji: str
+    name: str
+    entries: tuple[RankEntry, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class Results:
+    overall: tuple[RankEntry, ...]
+    by_category: tuple[CategoryResult, ...]
+
+
 @dataclass(slots=True)
 class Room:
     code: str
@@ -51,6 +76,7 @@ class Room:
     participants: dict[str, Participant] = field(default_factory=dict)
     categories: list[Category] = field(default_factory=list)
     scores: dict[ScoreKey, int] = field(default_factory=dict)
+    results: Results | None = None
     next_participant_seq: int = 1
     next_category_seq: int = 1
     version: int = 0

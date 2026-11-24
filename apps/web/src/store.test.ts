@@ -13,6 +13,7 @@ function snapshot(version: number, title = "Concurso"): RoomSnapshot {
     categories: [],
     myScores: [],
     proxyScores: [],
+    results: null,
     startCheck: { ready: false, missing: ["categories"] },
   };
 }

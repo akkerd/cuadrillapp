@@ -26,6 +26,7 @@ from cuadrillapp.domain.effects import (
 from cuadrillapp.domain.errors import DomainError, ErrorCode
 from cuadrillapp.domain.models import Category, Participant, Role, Room
 from cuadrillapp.domain.names import clean_display, normalize_name
+from cuadrillapp.domain.results import compute_results
 from cuadrillapp.protocol import commands as c
 from cuadrillapp.protocol.results import JoinResult, RejoinResult
 
@@ -115,7 +116,7 @@ def _route(room: Room, actor: Participant, cmd: c.Command | Disconnect | GraceEx
             return _add_manual(room, actor, cmd)
         case c.CategoryAdd() | c.CategoryUpdate() | c.CategoryDelete() | c.CategoryMove():
             return _edit_categories(room, actor, cmd)
-        case c.VotingStart():
+        case c.VotingStart() | c.VotingReveal() | c.VotingReopen() | c.RoundNew():
             return _change_phase(room, actor, cmd)
         case c.ScoreSet():
             return _set_score(room, actor, cmd)
@@ -246,7 +247,7 @@ def _edit_categories(
 def _change_phase(
     room: Room,
     actor: Participant,
-    cmd: c.VotingStart,
+    cmd: c.VotingStart | c.VotingReveal | c.VotingReopen | c.RoundNew,
 ) -> Outcome:
     if not actor.is_admin:
         return _err("FORBIDDEN")
@@ -258,6 +259,23 @@ def _change_phase(
                 return _err("START_REQUIREMENTS")
             _reset_done(room)
             room.phase = "voting"
+        case c.VotingReveal():
+            if room.phase != "voting":
+                return _err("WRONG_PHASE")
+            room.results = compute_results(room)
+            room.phase = "results"
+        case c.VotingReopen():
+            if room.phase != "results":
+                return _err("WRONG_PHASE")
+            room.results = None
+            room.phase = "voting"
+        case c.RoundNew():
+            if room.phase != "results":
+                return _err("WRONG_PHASE")
+            room.scores.clear()
+            room.results = None
+            _reset_done(room)
+            room.phase = "lobby"
     return Applied(room)
 
 
@@ -349,7 +367,10 @@ def _add_participant(
 
 
 def _remove(room: Room, participant_id: str) -> None:
-    """Remove a participant and drop the scores they gave and received."""
+    """Remove a participant and drop the scores they gave and received.
+
+    Results already revealed are frozen in `room.results` and do not change.
+    """
     del room.participants[participant_id]
     room.scores = {
         key: value for key, value in room.scores.items() if participant_id not in (key[0], key[1])

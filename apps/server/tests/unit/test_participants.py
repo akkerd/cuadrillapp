@@ -82,6 +82,15 @@ def test_leave_during_voting_discards_scores() -> None:
     assert SeatReleased(ids["Leo"], kicked=False) in outcome.effects
 
 
+def test_leave_after_results_keeps_results() -> None:
+    room, ids = voting_room()
+    room = score(room, ids["Ana"], ids["Leo"], "c1", 20)
+    room = run(room, ids["Ana"], c.VotingReveal())
+    before = room.results
+    room = run(room, ids["Leo"], c.RoomLeave())
+    assert room.results == before
+
+
 def test_kick() -> None:
     room, ids = new_room("Ana", "Leo")
     outcome = applied(room, ids["Ana"], c.ParticipantKick(participant_id=ids["Leo"]))

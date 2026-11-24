@@ -88,6 +88,13 @@ def test_change_of_mind_and_clear() -> None:
     assert (ids["Leo"], ids["Sara"], "c1") not in room.scores
 
 
+def test_voting_closed() -> None:
+    room, ids = voting_room()
+    room = run(room, ids["Ana"], c.VotingReveal())
+    cmd = c.ScoreSet(candidate_id=ids["Sara"], category_id="c1", quarters=10)
+    assert fails(room, ids["Leo"], cmd) == "WRONG_PHASE"
+
+
 def test_admin_votes_for_grandma() -> None:
     room, ids = new_room("Ana", "Leo")
     room = run(room, ids["Ana"], c.ManualAdd(name="Grandma", emoji="🧙"))
@@ -124,3 +131,12 @@ def test_mark_done_and_progress() -> None:
     assert (progress.given, progress.total) == (1, 4)  # 2 candidates × 2 categories
     room = run(room, ids["Leo"], c.VoterDone(done=True))
     assert room.participants[ids["Leo"]].done
+
+
+def test_start_resets_done_flags() -> None:
+    room, ids = voting_room()
+    room = run(room, ids["Leo"], c.VoterDone(done=True))
+    room = run(room, ids["Ana"], c.VotingReveal())
+    room = run(room, ids["Ana"], c.RoundNew())
+    room = run(room, ids["Ana"], c.VotingStart())
+    assert not room.participants[ids["Leo"]].done
