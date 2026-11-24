@@ -1,0 +1,430 @@
+{
+  "$defs": {
+    "AdminSet": {
+      "additionalProperties": false,
+      "properties": {
+        "isAdmin": {
+          "type": "boolean"
+        },
+        "participantId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participantId",
+        "isAdmin"
+      ],
+      "title": "AdminSet",
+      "type": "object"
+    },
+    "JoinResult": {
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "participantId": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "participantId",
+        "token"
+      ],
+      "title": "JoinResult",
+      "type": "object"
+    },
+    "KickedEvent": {
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "KickedEvent",
+      "type": "object"
+    },
+    "ManualAdd": {
+      "additionalProperties": false,
+      "properties": {
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "role": {
+          "default": "candidate",
+          "enum": [
+            "candidate",
+            "voter"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "emoji"
+      ],
+      "title": "ManualAdd",
+      "type": "object"
+    },
+    "Me": {
+      "properties": {
+        "isAdmin": {
+          "type": "boolean"
+        },
+        "participantId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "participantId",
+        "isAdmin"
+      ],
+      "title": "Me",
+      "type": "object"
+    },
+    "ParticipantKick": {
+      "additionalProperties": false,
+      "properties": {
+        "participantId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "participantId"
+      ],
+      "title": "ParticipantKick",
+      "type": "object"
+    },
+    "ParticipantUpdate": {
+      "additionalProperties": false,
+      "description": "Change my profile or, as an admin, someone's role or a manual participant's profile.",
+      "properties": {
+        "emoji": {
+          "anyOf": [
+            {
+              "maxLength": 16,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 16,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "participantId": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "role": {
+          "anyOf": [
+            {
+              "enum": [
+                "candidate",
+                "voter"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "ParticipantUpdate",
+      "type": "object"
+    },
+    "ParticipantView": {
+      "properties": {
+        "connected": {
+          "type": "boolean"
+        },
+        "emoji": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "isAdmin": {
+          "type": "boolean"
+        },
+        "isManual": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "candidate",
+            "voter"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "emoji",
+        "role",
+        "isAdmin",
+        "isManual",
+        "connected"
+      ],
+      "title": "ParticipantView",
+      "type": "object"
+    },
+    "PeekResult": {
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "full": {
+          "type": "boolean"
+        },
+        "phase": {
+          "const": "lobby",
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "title",
+        "phase",
+        "full"
+      ],
+      "title": "PeekResult",
+      "type": "object"
+    },
+    "RejoinResult": {
+      "properties": {
+        "participantId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "participantId"
+      ],
+      "title": "RejoinResult",
+      "type": "object"
+    },
+    "ReplacedEvent": {
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "ReplacedEvent",
+      "type": "object"
+    },
+    "RoomCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "role": {
+          "default": "candidate",
+          "enum": [
+            "candidate",
+            "voter"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "emoji"
+      ],
+      "title": "RoomCreate",
+      "type": "object"
+    },
+    "RoomJoin": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        },
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "role": {
+          "default": "candidate",
+          "enum": [
+            "candidate",
+            "voter"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "emoji",
+        "code"
+      ],
+      "title": "RoomJoin",
+      "type": "object"
+    },
+    "RoomLeave": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "RoomLeave",
+      "type": "object"
+    },
+    "RoomPeek": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "RoomPeek",
+      "type": "object"
+    },
+    "RoomRejoin": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        },
+        "token": {
+          "maxLength": 64,
+          "minLength": 8,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "token"
+      ],
+      "title": "RoomRejoin",
+      "type": "object"
+    },
+    "RoomSnapshot": {
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "me": {
+          "$ref": "#/$defs/Me"
+        },
+        "participants": {
+          "items": {
+            "$ref": "#/$defs/ParticipantView"
+          },
+          "type": "array"
+        },
+        "phase": {
+          "const": "lobby",
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "code",
+        "version",
+        "title",
+        "phase",
+        "me",
+        "participants"
+      ],
+      "title": "RoomSnapshot",
+      "type": "object"
+    },
+    "TitleSet": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "maxLength": 30,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "TitleSet",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "title": "CuadrillappProtocol",
+  "type": "object"
+}

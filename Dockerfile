@@ -7,9 +7,11 @@ RUN npm install -g pnpm@12.21.0
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY apps/web/package.json apps/web/
+COPY packages/protocol/package.json packages/protocol/
 COPY e2e/package.json e2e/
 RUN pnpm install --frozen-lockfile --filter web...
 COPY apps/web apps/web
+COPY packages/protocol packages/protocol
 RUN pnpm --filter web build
 
 FROM python:3.14-slim AS runtime
