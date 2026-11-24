@@ -2,70 +2,70 @@
 
 ## Context
 
-Proyecto nuevo (repo vacío). Motivación y alcance en `proposal.md`; comportamiento en `specs/`. Restricciones que dan forma al diseño:
+New project (empty repo). Motivation and scope are in `proposal.md`; behaviour is in `specs/`. Constraints that shape the design:
 
-- Uso real: grupos de 3-30 amigos en la misma habitación, cada uno con su móvil, sesiones de 10-60 minutos. Carga mínima.
-- Proyecto de prueba sin presupuesto: hosting gratuito.
-- Backend en **Python** (decisión del usuario: algo sencillo y escalable "tipo Flask"); frontend en React.
-- El código lo modificará sobre todo Claude, a menudo desde sesiones en la nube lanzadas desde el móvil y sin el portátil encendido: todo debe instalarse, probarse y verificarse con un solo comando, sin Docker y sin secretos.
-- Este change no persiste nada; `add-leagues-ranking` añadirá base de datos y login. El diseño deja el hueco preparado (mismo origen para cookies, dominio puro, interfaces de almacenamiento) sin implementarlo.
+- Real use: groups of 3-30 friends in the same room, each with a phone, sessions of 10-60 minutes. Minimal load.
+- Test project without a budget: free hosting.
+- **Python** backend (the user's choice: something simple and scalable "like Flask"); React frontend.
+- The code will mostly be changed by Claude, often from cloud sessions started from a phone with the laptop switched off: everything must install, test and verify with a single command, without Docker and without secrets.
+- This change persists nothing; `add-leagues-ranking` will add a database and login. The design leaves room for it (same origin for cookies, pure domain, storage interfaces) without implementing it.
 
 ## Goals / Non-Goals
 
 **Goals:**
-- Un único artefacto desplegable (imagen Docker) que sirve la PWA, el endpoint de salud y el canal en tiempo real en el mismo origen.
-- Reglas de negocio en funciones puras de Python con tests rápidos; red, reloj y temporizadores en una capa fina alrededor.
-- Un contrato cliente-servidor con una sola fuente de verdad (Pydantic) y tipos TypeScript generados.
-- Un camino de escalado horizontal definido (interfaces intercambiables), aunque hoy se ejecute una sola instancia.
-- Pipeline en el que "mergear a main" sea la única forma de desplegar, y solo con checks verdes.
+- A single deployable artifact (Docker image) that serves the PWA, the health endpoint and the real-time channel from the same origin.
+- Business rules in pure Python functions with fast tests; network, clock and timers in a thin layer around them.
+- A client-server contract with a single source of truth (Pydantic) and generated TypeScript types.
+- A defined horizontal scaling path (swappable interfaces), even though a single instance runs today.
+- A pipeline where merging to main is the only way to deploy, and only with green checks.
 
 **Non-Goals:**
-- Implementar ya el escalado horizontal o la supervivencia de salas a reinicios.
-- Renderizado en servidor (SSR) o SEO.
-- Optimizar para navegadores de escritorio antiguos (prioridad: Chrome Android y Safari iOS recientes).
+- Implementing horizontal scaling or rooms that survive restarts now.
+- Server-side rendering (SSR) or SEO.
+- Optimising for old desktop browsers (priority: recent Chrome on Android and Safari on iOS).
 
-## Arquitectura
+## Architecture
 
 ```
- Móvil (PWA)                                   Render (plan free, 1 instancia, Docker)
+ Phone (PWA)                                   Render (free plan, 1 instance, Docker)
 ┌──────────────────────────┐   HTTPS          ┌────────────────────────────────────────────┐
 │ React 19 + Vite          │ ───────────────▶ │ Uvicorn (1 worker) → socketio.ASGIApp      │
-│  pantallas ← store       │   GET /, /r/:c   │  ├─ FastAPI                                │
-│  (último snapshot)       │   GET /healthz   │  │   ├─ /healthz → {status, version: SHA}  │
-│        ▲         │       │                  │  │   └─ estáticos PWA + fallback SPA       │
-│ snapshot│     comando     │   WebSocket      │  └─ python-socketio AsyncServer            │
-│        │         ▼       │ ◀──────────────▶ │      ├─ dispatch(): Pydantic + rate limit  │
-│ socket.io-client          │  (fallback poll) │      ├─ apply_command() ── dominio puro    │
+│  screens ← store         │   GET /, /r/:c   │  ├─ FastAPI                                │
+│  (latest snapshot)       │   GET /healthz   │  │   ├─ /healthz → {status, version: SHA}  │
+│        ▲         │       │                  │  │   └─ PWA static files + SPA fallback    │
+│ snapshot│      command    │   WebSocket      │  └─ python-socketio AsyncServer            │
+│        │         ▼       │ ◀──────────────▶ │      ├─ parse: rate limit + Pydantic       │
+│ socket.io-client          │  (poll fallback) │      ├─ apply_command() ── pure domain     │
 │ Service Worker (shell)   │                  │      ├─ RoomStore (MemoryRoomStore)        │
 └──────────────────────────┘                  │      ├─ Scheduler (asyncio)                │
-                                              │      └─ project_snapshot() por destinatario│
+                                              │      └─ project_snapshot() per viewer      │
                                               └────────────────────────────────────────────┘
- GitHub: PR → Actions (make verify + docker build) → main protegida → Render despliega tras checks
+ GitHub: PR → Actions (make verify + docker build) → protected main → Render deploys after checks
 ```
 
-Estructura del repo:
+Repository layout:
 
 ```
 cuadrillapp/
 ├─ apps/
-│  ├─ server/                     proyecto uv (Python 3.14)
-│  │  ├─ pyproject.toml           deps + config de Ruff, mypy y pytest
+│  ├─ server/                     uv project (Python 3.14)
+│  │  ├─ pyproject.toml           deps + Ruff, mypy and pytest config
 │  │  ├─ uv.lock
 │  │  ├─ src/cuadrillapp/
-│  │  │  ├─ main.py               create_app(): FastAPI + Socket.IO → ASGI app
+│  │  │  ├─ main.py               build_app()/create_app(): FastAPI + Socket.IO → ASGI app
 │  │  │  ├─ settings.py           Settings (pydantic-settings)
-│  │  │  ├─ domain/               PURO: models.py, commands.py, apply.py, results.py,
+│  │  │  ├─ constants.py          limits and catalogs (exported to the frontend)
+│  │  │  ├─ domain/               PURE: models.py, apply.py, effects.py, results.py,
 │  │  │  │                        scores.py, names.py, codes.py, projection.py, errors.py
-│  │  │  ├─ protocol/             modelos Pydantic de comandos, acks y snapshot; export.py
-│  │  │  ├─ realtime/             server.py (sio), handlers.py, dispatch.py, presence.py,
-│  │  │  │                        ratelimit.py, scheduler.py
-│  │  │  ├─ store/                base.py (Protocol RoomStore), memory.py
+│  │  │  ├─ protocol/             Pydantic commands, acks and snapshot; registry.py, export.py
+│  │  │  ├─ realtime/             hub.py (Socket.IO), ratelimit.py, scheduler.py
+│  │  │  ├─ store/                base.py (RoomStore Protocol), memory.py
 │  │  │  └─ http/                 health.py, static.py, security.py
-│  │  └─ tests/                   unit/ (dominio), integration/ (HTTP y sockets)
+│  │  └─ tests/                   unit/ (domain), integration/ (HTTP and sockets)
 │  └─ web/                        React PWA (Vite)
-├─ packages/protocol/             tipos TS generados (no editar a mano)
-├─ e2e/                           Playwright (multi-dispositivo)
-├─ openspec/                      specs y changes
+├─ packages/protocol/             generated TS types (do not edit by hand)
+├─ e2e/                           Playwright (several devices)
+├─ openspec/                      specs and changes
 ├─ Dockerfile, render.yaml, Makefile, CLAUDE.md
 ├─ pnpm-workspace.yaml            apps/web, packages/protocol, e2e
 └─ .github/workflows/ci.yml
@@ -73,209 +73,208 @@ cuadrillapp/
 
 ## Decisions
 
-### 1. FastAPI en lugar de Flask
-FastAPI mantiene la sencillez de Flask (una app, rutas con decoradores, poco código), pero es **ASGI y asíncrono de serie**, que es lo que necesita una app de tiempo real: miles de WebSockets abiertos en un solo proceso sin hilos ni monkey-patching. Además trae validación con Pydantic integrada y OpenAPI automática (útil para generar los tipos del frontend en el change 2).
-- *Alternativa:* Flask + Flask-SocketIO. Funciona, pero sus modos asíncronos dependen de eventlet (en desuso) o gevent con monkey-patching, que complica usar librerías async (BD, OAuth) y depurar. El modo con hilos escala peor con conexiones largas.
-- *Alternativa:* Quart (Flask asíncrono). Misma API que Flask, pero ecosistema y documentación mucho más pequeños.
-- *Alternativa:* Django + Channels. Demasiado peso para una app sin modelos de negocio complejos en este change.
+### 1. FastAPI instead of Flask
+FastAPI keeps Flask's simplicity (one app, routes with decorators, little code), but it is **ASGI and asynchronous out of the box**, which is what a real-time app needs: thousands of open WebSockets in a single process without threads or monkey-patching. It also brings built-in validation with Pydantic and automatic OpenAPI (useful to generate frontend types in change 2).
+- *Alternative:* Flask + Flask-SocketIO. It works, but its async modes rely on eventlet (deprecated) or on gevent with monkey-patching, which complicates async libraries (database, OAuth) and debugging. The threaded mode scales worse with long-lived connections.
+- *Alternative:* Quart (async Flask). Same API as Flask, but a much smaller ecosystem and less documentation.
+- *Alternative:* Django + Channels. Too heavy for an app without complex business models in this change.
 
-### 2. Tiempo real con python-socketio en modo ASGI
-`socketio.AsyncServer(async_mode="asgi")` envuelve a FastAPI en una sola app ASGI:
+### 2. Real time with python-socketio in ASGI mode
+`socketio.AsyncServer(async_mode="asgi")` wraps FastAPI into a single ASGI app:
 
 ```python
 # main.py
-def create_app(settings: Settings | None = None) -> ASGIApp:
+def build_app(settings: Settings | None = None, *, scheduler=None, clock=None) -> AppBundle:
     settings = settings or Settings()
-    api = FastAPI(lifespan=lifespan, docs_url=None if settings.is_production else "/docs")
-    api.include_router(health.router)
-    install_security_headers(api)
-    mount_static(api, settings.web_dist_dir)            # al final: incluye el fallback SPA
-    sio = build_socket_server(settings)                  # registra handlers
-    return socketio.ASGIApp(sio, other_asgi_app=api, socketio_path="socket.io")
+    hub = RealtimeHub(settings, MemoryRoomStore(), scheduler or AsyncioScheduler(), clock or time.monotonic)
+    api = FastAPI(lifespan=lifespan, docs_url=None if settings.is_production else "/api/docs")
+    api.add_middleware(SecurityHeadersMiddleware)
+    api.include_router(health_router(settings))
+    api.mount("/", SpaStaticFiles(directory=settings.web_dist_dir))   # last: SPA fallback
+    asgi = socketio.ASGIApp(hub.sio, other_asgi_app=api, socketio_path="socket.io")
+    return AppBundle(asgi=asgi, api=api, hub=hub)
 ```
 
-El cliente sigue siendo `socket.io-client`: acks, heartbeats, reconexión con backoff y fallback a long-polling en redes móviles que cortan WebSockets, sin reimplementarlos.
-- *Alternativa:* WebSockets nativos de FastAPI. Descartado: habría que escribir a mano acks, reconexión, heartbeats y salas, justo lo más delicado en móvil.
-- Se ejecuta con `uvicorn cuadrillapp.main:app --factory` y **1 worker**: el estado de las salas vive en el proceso (ver decisión 7 y "Camino de escalado").
+The client stays `socket.io-client`: acks, heartbeats, reconnection with backoff and long-polling fallback on mobile networks that drop WebSockets, without reimplementing them.
+- *Alternative:* FastAPI's native WebSockets. Rejected: acks, reconnection, heartbeats and rooms would have to be written by hand, which is exactly the delicate part on mobile.
+- It runs with `uvicorn cuadrillapp.main:create_app --factory` and **1 worker**: room state lives in the process (see decision 7 and "Scaling path").
 
-### 3. Un único servicio en el mismo origen
-FastAPI sirve la build estática de la web (`StaticFiles` para `/assets` y ficheros del SW) y una ruta comodín que devuelve `index.html` para rutas de la SPA (`/r/{code}`); excluye `/socket.io`, `/api` y `/healthz`. Sin CORS, sin dominios cruzados, y cookies first-party listas para el login del change 2. En desarrollo, Vite corre en `:5173` con proxy de `/socket.io`, `/api` y `/healthz` hacia Uvicorn en `:8000`.
+### 3. A single service on the same origin
+FastAPI serves the web's static build (`StaticFiles` for `/assets` and service-worker files) and falls back to `index.html` for SPA routes (`/r/{code}`), excluding `/socket.io`, `/api` and `/healthz`. No CORS, no cross-domain requests, and first-party cookies ready for change 2's login. In development, Vite runs on `:5173` and proxies `/socket.io`, `/api` and `/healthz` to Uvicorn on `:8000`.
 
-### 4. Servidor autoritativo: comandos con ack y snapshots proyectados
-- **Cliente → servidor:** un evento por comando (`room:create`, `room:join`, `room:rejoin`, `room:leave`, `participant:update`, `participant:kick`, `admin:set`, `manual:add`, `category:upsert`, `category:delete`, `category:reorder`, `phase:set`, `score:set`, `voter:done`…). Cada handler es una línea que delega en `dispatch`:
+### 4. Authoritative server: commands with acks and projected snapshots
+- **Client → server:** one event per command (`room:create`, `room:peek`, `room:join`, `room:rejoin`, `room:leave`, `room:title`, `participant:update`, `participant:kick`, `admin:set`, `manual:add`, `category:add`, `category:update`, `category:delete`, `category:move`, `voting:start`, `voting:reveal`, `voting:reopen`, `round:new`, `score:set`, `voter:done`). Every in-room command goes through one path in `realtime/hub.py`:
 
 ```python
-# realtime/handlers.py
-@sio.on("score:set")
-async def score_set(sid: str, data: object) -> AckPayload:
-    return await dispatch(sid, ScoreSet, data)
+async def _dispatch(self, model: type[Command], sid: str, data: object) -> AckPayload:
+    cmd = self._parse(sid, model, data)            # rate limit + Pydantic validation
+    if isinstance(cmd, dict):
+        return cmd                                  # {"ok": false, "error": ...}
+    session = await self.sio.get_session(sid)       # {room, pid}
+    return await self.apply(session["room"], session["pid"], cmd)
 
-# realtime/dispatch.py
-async def dispatch(sid: str, model: type[Command], data: object) -> AckPayload:
-    if not limiter.allow(sid):
-        return ack_error(ErrorCode.RATE_LIMITED)
-    try:
-        cmd = model.model_validate(data)
-    except ValidationError:
-        return ack_error(ErrorCode.INVALID)
-    seat = await sio.get_session(sid)                    # {room, participant_id}
-    room = store.get(seat["room"])
+async def apply(self, code: str, participant_id: str, cmd) -> AckPayload:
+    room = self.store.get(code)
     if room is None:
-        return ack_error(ErrorCode.ROOM_NOT_FOUND)
-    result = apply_command(room, seat["participant_id"], cmd, now=clock())
-    if isinstance(result, DomainError):
-        return ack_error(result.code)
-    store.put(result.room)                               # ← sin await entre get y put
-    await broadcast(result.room)
-    schedule_side_effects(result.effects)                # temporizadores, expulsiones…
-    return ack_ok(result.data)
+        return ack_error("ROOM_NOT_FOUND")
+    outcome = apply_command(room, participant_id, cmd, self.clock())
+    if isinstance(outcome, DomainError):
+        return ack_error(outcome.code)
+    self.store.put(outcome.room)                   # ← no await between get and put
+    await self._run_effects(code, outcome.effects) # timers, kicked notices…
+    await self.broadcast(code)
+    return ack_ok(outcome.data)
 ```
 
-- **Atomicidad:** con un solo event loop, no hay `await` entre leer la sala y guardarla, así que dos comandos nunca se intercalan sobre la misma sala. Esta regla se documenta en `CLAUDE.md` y la protege un test.
-- **Servidor → cliente:** tras cada mutación, `broadcast` emite `room:state` **a cada socket por separado** con `project_snapshot(room, viewer_id)`: datos públicos + mis notas + (si soy admin) progreso por votante y notas de los participantes manuales. Las notas ajenas nunca salen del servidor (spec de anonimato).
-- Con ≤30 participantes × ≤8 categorías el snapshot ocupa pocos KB; no compensa enviar diffs.
-- El cliente guarda el último snapshot en un store (Zustand) y la UI es una función de él, con actualización optimista local en la pantalla de puntuación.
+- **Atomicity:** with a single event loop and no `await` between reading and storing the room, two commands never interleave on the same room. `CLAUDE.md` states this rule and a concurrency test protects it.
+- **Server → client:** after every mutation, `broadcast` emits `room:state` **to each socket separately** with `project_snapshot(room, viewer_id)`: public room data + my scores + (for admins) per-voter progress and the scores of manual participants. Other people's scores never leave the server (anonymity spec). Each snapshot carries a `version`; clients drop older versions, so concurrent emits cannot leave a device with stale state.
+- With ≤30 participants × ≤8 categories a snapshot is a few KB; diffs are not worth it.
+- The client keeps the latest snapshot in a store (Zustand) and the UI is a function of it, with local optimistic updates on the scoring screen.
 
-### 5. Dominio puro en Python
-- `domain/models.py`: `@dataclass(slots=True)` para `Room`, `Participant`, `Category`, `Scores` (dict `(voter_id, candidate_id, category_id) → quarters`), `FrozenResults`. Tipos de valor con `Literal` y `NewType` (no `Enum` de stdlib para que serialicen limpio).
-- `domain/apply.py`: `apply_command(room, actor_id, cmd, now) -> Applied | DomainError`. Trabaja sobre `copy.deepcopy(room)` (salas diminutas): si una regla falla a mitad, la copia se descarta y la sala original queda intacta. Despacha con `match cmd:` por tipo de comando.
-- `Applied` lleva la nueva sala, los datos de respuesta y **efectos** declarativos (`StartAdminGrace(pid)`, `CancelAdminGrace(pid)`, `NotifyKicked(pid)`) que ejecuta la capa realtime. Así el dominio sigue sin I/O ni temporizadores.
-- `domain/results.py`: `compute_results(room) -> Results` con `fractions.Fraction` para medias exactas; rankings y empates se comparan sobre fracciones y solo se redondean a 2 decimales al serializar. Se reutiliza en el change 2.
-- Reloj inyectado (`now: float`); nada en `domain/` importa `asyncio`, `socketio` ni `fastapi` (un test de imports lo comprueba).
+### 5. Pure domain in Python
+- `domain/models.py`: `@dataclass(slots=True)` for `Room`, `Participant`, `Category`; scores are a dict `(voter_id, candidate_id, category_id) → quarters`; frozen `Results`. Value types use `Literal` (not stdlib `Enum`) so they serialise cleanly.
+- `domain/apply.py`: `apply_command(room, actor_id, cmd, now) -> Applied | DomainError`. It works on `copy.deepcopy(room)` (rooms are tiny): if a rule fails halfway, the copy is discarded and the original room is untouched. It dispatches with `match cmd:` on the command type.
+- `Applied` carries the new room, the response data and declarative **effects** (`StartGrace(pid)`, `CancelGrace(pid)`, `SeatReleased(pid, kicked)`) that the realtime layer executes. The domain stays free of I/O and timers.
+- `domain/results.py`: `compute_results(room) -> Results` with `fractions.Fraction` for exact means; rankings and ties compare fractions and are only rounded to 2 decimals when serialised. Change 2 reuses it.
+- The clock is injected (`now: float`); nothing in `domain/` imports `asyncio`, `socketio` or `fastapi` (an import test checks it).
 
-### 6. Contrato tipado de una sola fuente (Pydantic → TypeScript)
-- `protocol/` define con Pydantic v2 todos los comandos (`ScoreSet(room, candidate_id, category_id, quarters: conint(ge=0, le=40) | None)`, …), el formato de ack (`{"ok": true, "data": …} | {"ok": false, "error": ErrorCode}`), los códigos de error y el snapshot proyectado. `model_config = ConfigDict(extra="forbid", frozen=True)`.
-- `python -m cuadrillapp.protocol.export` escribe `packages/protocol/schema.json` (JSON Schema de todos los modelos + constantes: límites, alfabeto, emojis, sugerencias de categorías) y `json-schema-to-typescript` genera `packages/protocol/src/generated.ts`. La web solo importa de `@cuadrillapp/protocol`.
-- `make gen` regenera; `make gen-check` (parte de `make verify` y de CI) falla si los ficheros generados no coinciden con los modelos → imposible que cliente y servidor se desincronicen sin que CI lo note.
-- *Alternativa:* duplicar tipos a mano en TS. Descartado: deriva silenciosa entre lenguajes.
+### 6. Typed contract from a single source (Pydantic → TypeScript)
+- `protocol/` defines with Pydantic v2 every command (`ScoreSet(candidate_id, category_id, quarters: int 0..40 | None, as_participant_id)`, …), the ack format (`{"ok": true, "data": …} | {"ok": false, "error": ErrorCode}`), the error codes and the projected snapshot, with `extra="forbid"`, `strict=True` and camelCase JSON.
+- `python -m cuadrillapp.protocol.export` writes `packages/protocol/schema.json` (JSON Schema of every model), `src/events.ts` (typed event map, error codes, literals) and `src/constants.ts` (limits, code alphabet, emojis, category suggestions); `json-schema-to-typescript` generates `packages/protocol/src/generated.ts`. The web only imports from `@cuadrillapp/protocol`.
+- `make gen` regenerates; `make gen-check` (part of `make verify` and CI) fails if the generated files do not match the models → client and server cannot drift apart without CI noticing.
+- *Alternative:* hand-written duplicate TS types. Rejected: silent drift between languages.
 
-### 7. Estado de salas en memoria detrás de una interfaz
-- `store/base.py`: `class RoomStore(Protocol)` con `get`, `put`, `delete`, `code_exists`, `iter_idle(older_than)`. `store/memory.py`: `MemoryRoomStore` con un `dict[str, Room]`.
-- Barrido cada 60 s como tarea `asyncio` lanzada en el `lifespan` de FastAPI: elimina salas con 30 min sin conexiones. Límite global de salas activas (p. ej. 300) y de creación por IP (p. ej. 10/min).
-- *Consecuencia aceptada:* un reinicio o despliegue cierra todas las salas activas (spec "Reinicio del servidor"); el cliente recibe `ROOM_NOT_FOUND` en `room:rejoin` y muestra "Sala cerrada".
+### 7. In-memory room state behind an interface
+- `store/base.py`: `class RoomStore(Protocol)` with `get`, `put`, `delete`, `exists`, `codes`, `count`. `store/memory.py`: `MemoryRoomStore` with a `dict[str, Room]`.
+- A sweep every 60 s, run as an `asyncio` task started in FastAPI's `lifespan`, deletes rooms with 30 minutes without connections. Global cap on active rooms (300) and on room creation per IP (10/min).
+- *Accepted consequence:* a restart or deployment closes every active room (spec "Server restart"); the client receives `ROOM_NOT_FOUND` on `room:rejoin` and shows "room closed".
 
-### 8. Identidad de plaza, presencia y temporizadores
-- Al unirse, el servidor devuelve `participant_id` y un `rejoin_token = secrets.token_urlsafe(16)` que el cliente guarda en `localStorage` por código de sala. `room:rejoin {code, token}` recupera la plaza; expulsar invalida el token. El servidor guarda `{room, participant_id}` en la sesión de Socket.IO (`sio.save_session`).
-- `connect`/`disconnect` de Socket.IO actualizan la presencia (`connected` ↔ `disconnected`). `joined_seq` (contador por sala) define el orden de llegada.
-- `realtime/scheduler.py`: `class Scheduler(Protocol)` con `call_later(delay, key, fn)` y `cancel(key)`. Implementación real sobre `asyncio.get_running_loop().call_later`; en tests, `FakeScheduler` con `advance(seconds)` para probar la gracia de 60 s y la sucesión sin esperar.
+### 8. Seat identity, presence and timers
+- On joining, the server returns `participantId` and a `rejoin token` (`secrets.token_urlsafe(16)`) that the client stores in `localStorage` per room code. `room:rejoin {code, token}` recovers the seat; kicking invalidates the token. The server keeps `{room, pid}` in the Socket.IO session.
+- Socket.IO `connect`/`disconnect` update presence (`connected` ↔ `disconnected`). `joined_seq` (a per-room counter) defines join order.
+- `realtime/scheduler.py`: `class Scheduler(Protocol)` with `call_later(delay, key, callback)`, `cancel(key)` and `cancel_prefix(prefix)`. The real implementation uses `asyncio.get_running_loop().call_later`; tests use `FakeScheduler` with `advance(seconds)` to check the 60 s grace period and succession without waiting.
 
-### 9. Notas como enteros de cuartos
-Una nota es un entero 0..40 (cuartos de punto) en todo el backend y en el protocolo. La web convierte para mostrar (`7,25`) con `Intl.NumberFormat('es-ES')`. Elimina errores de coma flotante y simplifica la validación (`conint(ge=0, le=40)`).
+### 9. Scores as integer quarters
+A score is an integer 0..40 (quarter points) everywhere in the backend and the protocol. The web converts it for display with `Intl.NumberFormat` in the UI language. This removes floating-point errors and makes validation trivial (`0 <= quarters <= 40`).
 
-### 10. Configuración
-`settings.py` con `pydantic-settings`: `ENV` (`development|test|production`), `PORT`, `WEB_DIST_DIR`, `RENDER_GIT_COMMIT` (versión para `/healthz`), límites de rate limit y de salas. Un único objeto `Settings` inyectado en `create_app()`; los tests crean apps con settings propios.
+### 10. Configuration
+`settings.py` with `pydantic-settings`: `ENV` (`development|test|production`), `WEB_DIST_DIR`, `RENDER_GIT_COMMIT` (version for `/healthz`), `CORS_ORIGINS`, and the rate-limit, room-cap and timer settings. A single `Settings` object is injected into `build_app()`; tests build apps with their own settings.
 
-### 11. Herramientas Python
-- **uv**: gestiona Python 3.14 (`.python-version`), entorno virtual, dependencias y `uv.lock`. `uv run …` para todo.
-- **Ruff** (lint + formato), **mypy --strict** con el plugin de Pydantic, **pytest** + **pytest-asyncio** (`asyncio_mode = "auto"`), **httpx** para tests HTTP.
-- Dependencias de runtime mínimas: `fastapi`, `uvicorn[standard]`, `python-socketio`, `pydantic`, `pydantic-settings`.
-- Python 3.14 en lugar de 3.15 por madurez de wheels de dependencias; subir de versión es cambiar `.python-version` y la imagen base.
+### 11. Python tooling
+- **uv**: manages Python 3.14 (`.python-version`), the virtualenv, dependencies and `uv.lock`. Everything runs through `uv run …`.
+- **Ruff** (lint + format), **mypy --strict** with the Pydantic plugin, **pytest** + **pytest-asyncio** (`asyncio_mode = "auto"`), **httpx** for HTTP tests.
+- Minimal runtime dependencies: `fastapi`, `uvicorn[standard]`, `python-socketio`, `pydantic`, `pydantic-settings`.
+- Python 3.14 rather than 3.15 because of dependency wheel maturity; upgrading means changing `.python-version` and the base image.
 
 ### 12. Frontend
-- React 19 + Vite + React Router (rutas `/`, `/r/:code`); pantallas: Inicio, Perfil, Lobby, Votación, Resultados. Dentro de `/r/:code` la pantalla se deriva de la fase del snapshot.
-- Tailwind CSS v4 con tokens en CSS variables. Paleta propia "fiesta": fondo degradado violeta (#5B2EE5 → #8F3CF7), amarillo #FFD23F, rosa #FF5FA2, turquesa #22C9B7, naranja #FF8A3D, tinta #1E1338. Tipografía redondeada (Fredoka, auto-alojada). Botones "gorditos" con sombra inferior tipo 3D y tarjetas muy redondeadas. Inspirado en el ambiente de juegos de fiesta, sin copiar assets ni el aspecto de ningún juego concreto.
-- Motion para animaciones con muelle (respetando `prefers-reduced-motion`), `canvas-confetti` en el podio, `lucide-react` para iconos, `qrcode` para el QR (generado en cliente).
-- Textos en `apps/web/src/copy.ts`. Lista de emojis y sugerencias de categorías vienen de `@cuadrillapp/protocol` (definidas una vez en Python).
-- Biome (lint + formato), `tsc --noEmit`, Vitest + Testing Library.
+- React 19 + Vite + React Router (routes `/`, `/crear`, `/r/:code`); screens: Home, Profile, Lobby, Voting, Results. Inside `/r/:code` the screen is derived from the snapshot's phase.
+- Tailwind CSS v4 with tokens in CSS variables. Our own "party" palette: grape gradient background (#5B2EE5 → #8F3CF7), yellow #FFD23F, pink #FF5FA2, turquoise #22C9B7, orange #FF8A3D, ink #1E1338. Rounded typeface (Fredoka, self-hosted). Chunky buttons with a hard 3D-style bottom shadow and very rounded cards. Inspired by the feel of party games, without copying assets or the look of any specific game.
+- Motion for spring animations (respecting `prefers-reduced-motion`), `canvas-confetti` on the podium, `lucide-react` for icons, `qrcode` for the QR code (generated on the client). QR and confetti are loaded lazily.
+- All player-facing text lives in `apps/web/src/copy.ts`. The emoji list and category suggestions come from `@cuadrillapp/protocol` (defined once in Python).
+- Biome (lint + format), `tsc --noEmit`, Vitest + Testing Library.
 
 ### 13. PWA
-`vite-plugin-pwa` (Workbox `generateSW`): precache del shell y fuentes; sin caché de datos. Manifest con `display: "fullscreen"`, `display_override: ["fullscreen", "standalone"]`, `orientation: "portrait"`, iconos maskable 192/512 y `theme_color`. Registro en modo `prompt`: el aviso "Actualizar" solo recarga si el usuario lo pulsa. iOS cae a `standalone` + `viewport-fit=cover` + `env(safe-area-inset-*)`. Wake Lock API mientras hay sala, re-adquirido en `visibilitychange`. Botón de pantalla completa solo si `document.fullscreenEnabled`. FastAPI sirve `sw.js` y `manifest.webmanifest` con `Cache-Control: no-cache` y los assets con hash con caché larga.
+`vite-plugin-pwa` (Workbox `generateSW`): precaches the shell and fonts; no data caching. Manifest with `display: "fullscreen"`, `display_override: ["fullscreen", "standalone"]`, `orientation: "portrait"`, 192/512 icons plus a maskable one, and `theme_color`. Registration in `prompt` mode: the update notice only reloads when the user taps it. iOS falls back to `standalone` + `viewport-fit=cover` + `env(safe-area-inset-*)`. Wake Lock API while in a room, re-acquired on `visibilitychange`. Fullscreen button only when `document.fullscreenEnabled`. FastAPI serves `sw.js` and `manifest.webmanifest` with `Cache-Control: no-cache` and hashed assets with long-lived caching.
 
-### 14. Estrategia de tests
-1. **Unit (pytest):** dominio y resultados; cada escenario de los specs de `rooms`, `participants`, `room-admin`, `voting` y `results` tiene su test con nombre del escenario.
-2. **Integración (pytest-asyncio):** fixture que arranca `uvicorn.Server` con `create_app(test_settings)` en un puerto libre dentro del event loop del test y conecta varios `socketio.AsyncClient` simulando móviles (unión, proyección anónima, reconexión, rate limit). Temporizadores con `FakeScheduler`. HTTP con `httpx.AsyncClient(transport=ASGITransport(app))`.
-3. **Web (Vitest):** store, mapeo de errores y componentes clave.
-4. **E2E (Playwright, TS):** `webServer` de Playwright ejecuta la build de producción servida por Uvicorn; varios contextos en emulación móvil (Pixel 7): crear → unirse ×2 → categorías → votar → revelar; recarga a mitad de votación. Solo Chromium en CI; WebKit opcional en local.
+### 14. Testing strategy
+1. **Unit (pytest):** domain and results; every scenario in the `rooms`, `participants`, `room-admin`, `voting` and `results` specs has a test named after it.
+2. **Integration (pytest-asyncio):** a fixture starts `uvicorn.Server` with `build_app(test_settings)` on a free port inside the test's event loop and connects several `socketio.AsyncClient`s acting as phones (joining, anonymous projection, reconnection, rate limiting, concurrency). Timers use `FakeScheduler`. HTTP uses `httpx.AsyncClient(transport=ASGITransport(app))`.
+3. **Web (Vitest):** store, error mapping and key components.
+4. **E2E (Playwright, TS):** Playwright's `webServer` runs the production build served by Uvicorn; several browser contexts with mobile emulation (Pixel 7): create → two players join → categories → vote → reveal; reload in the middle of voting. Chromium only in CI; WebKit optional locally.
 
-### 15. Orquestación con Makefile
-Un `Makefile` en la raíz es el punto de entrada único para humanos, CI y Claude:
-- `make setup` → `uv sync` + `pnpm install` + `pnpm exec playwright install chromium`
-- `make dev` → Uvicorn con `--reload` + Vite dev (en paralelo)
-- `make gen` / `make gen-check` → contrato Pydantic → TS
+### 15. Orchestration with a Makefile
+A root `Makefile` is the single entry point for people, CI and Claude:
+- `make setup` → `uv sync` + `pnpm install` + `playwright install chromium`
+- `make dev` → Uvicorn with `--reload` + Vite dev (in parallel)
+- `make gen` / `make gen-check` → Pydantic contract → TS
 - `make lint` (Ruff + Biome), `make typecheck` (mypy + tsc), `make test` (pytest + Vitest), `make build` (Vite), `make e2e` (Playwright)
-- `make verify` → `gen-check lint typecheck test build e2e`, falla al primer error
+- `make verify` → `gen-check lint typecheck test e2e`, stopping at the first failure
 
-### 16. Empaquetado: imagen Docker multi-etapa
+### 16. Packaging: multi-stage Docker image
 ```dockerfile
-FROM node:26-slim AS web            # 1) build de la PWA
-RUN npm install -g pnpm@12.21.0   # Node 26 ya no incluye corepack
+FROM node:26-slim AS web            # 1) build the PWA
+RUN npm install -g pnpm@12.21.0     # Node 26 no longer ships corepack
 WORKDIR /repo
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY apps/web/package.json apps/web/
+COPY packages/protocol/package.json packages/protocol/
+COPY e2e/package.json e2e/
+RUN pnpm install --frozen-lockfile --filter web...
 COPY apps/web apps/web
 COPY packages/protocol packages/protocol
-RUN pnpm install --frozen-lockfile && pnpm --filter web build
+RUN pnpm --filter web build
 
-FROM python:3.14-slim AS runtime    # 2) runtime Python
-COPY --from=ghcr.io/astral-sh/uv:<versión fijada> /uv /bin/uv
+FROM python:3.14-slim AS runtime    # 2) Python runtime
+COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /bin/uv
 WORKDIR /app
-COPY apps/server/pyproject.toml apps/server/uv.lock ./
+COPY apps/server/pyproject.toml apps/server/uv.lock apps/server/.python-version ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY apps/server/src ./src
 RUN uv sync --frozen --no-dev
 COPY --from=web /repo/apps/web/dist ./web
-ENV WEB_DIST_DIR=/app/web PATH="/app/.venv/bin:$PATH"
+ENV PATH="/app/.venv/bin:$PATH" WEB_DIST_DIR=/app/web ENV=production PORT=8000
 USER nobody
-CMD ["sh", "-c", "uvicorn cuadrillapp.main:app --factory --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*' --workers 1"]
+CMD ["sh", "-c", "exec uvicorn cuadrillapp.main:create_app --factory --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*' --workers 1"]
 ```
-Docker evita depender de que el runtime nativo de Render tenga a la vez Node y Python, y la misma imagen sirve en local, CI o cualquier otro proveedor (Fly.io, Cloud Run).
+Docker avoids depending on Render's native runtime having both Node and Python, and the same image works locally, in CI and on any other provider (Fly.io, Cloud Run).
 
 ### 17. CI/CD
-- **GitHub Actions** `ci.yml` en `pull_request` y `push` a main:
-  - job `verify`: `astral-sh/setup-uv` (con caché), Node desde `.node-version` + pnpm con `pnpm/action-setup` (versión del campo `packageManager`; caché del store y de los navegadores de Playwright), `make setup`, `make verify`; sube el informe de Playwright como artefacto si falla.
-  - job `docker`: `docker build` de la imagen y prueba de humo (`docker run` + `curl /healthz`). Detecta un Dockerfile roto antes de mergear (no forma parte de `make verify` porque las sesiones en la nube pueden no tener Docker).
-- **Repositorio público** (`akkerd/cuadrillapp`): permite rulesets gratis en el plan Free y activa el escaneo de secretos con protección de push. Nada sensible vive en el repo (specs `delivery-pipeline`).
-- **Ruleset de main**: PR obligatorio, checks `verify` y `docker` obligatorios, 0 aprobaciones (proyecto de una persona), sin force-push ni borrado.
-- **Render Blueprint** (`render.yaml`): web service `runtime: docker`, `plan: free`, `healthCheckPath: /healthz`, auto-deploy solo cuando los checks del commit pasan (`autoDeployTrigger: checksPass`). Render no cambia el tráfico a la versión nueva hasta que el health check responde → spec "Despliegue sin caída".
-  - *Fallback* si esa opción no está disponible en el plan: auto-deploy desactivado + job `deploy` en Actions que, tras `verify` y `docker` en main, llama al Deploy Hook de Render (URL como secreto de GitHub).
-- `/healthz` devuelve `{"status": "ok", "version": RENDER_GIT_COMMIT}` → Claude (o el usuario) confirma qué commit está en producción.
-- **Rollback:** revert por PR (flujo normal) o "Rollback" a un deploy anterior en el dashboard de Render. Documentado en README.
+- **GitHub Actions** `ci.yml` on `pull_request` and `push` to main:
+  - `verify` job: `astral-sh/setup-uv` pinned to an exact release (it publishes no major tags) with caching, Node from `.node-version` + pnpm through `pnpm/action-setup` (version from the `packageManager` field), pnpm store and Playwright browser caches, `make setup`, `make verify`; uploads the Playwright report as an artifact on failure.
+  - `docker` job: `docker build` of the image and a smoke test (`docker run` + `curl /healthz`). It catches a broken Dockerfile before merging (it is not part of `make verify` because cloud sessions may not have Docker).
+- **Public repository** (`akkerd/cuadrillapp`): rulesets are free on the Free plan, and secret scanning with push protection is enabled. Nothing sensitive lives in the repo (`delivery-pipeline` specs).
+- **main ruleset**: PR required, `verify` and `docker` checks required, 0 approvals (single-person project), no force pushes or deletion.
+- **Render Blueprint** (`render.yaml`): web service with `runtime: docker`, `plan: free`, `healthCheckPath: /healthz`, auto-deploy only when the commit's checks pass (`autoDeployTrigger: checksPass`). Render does not switch traffic to the new version until the health check responds → spec "No downtime from broken versions".
+  - *Fallback* if that option is unavailable on the plan: auto-deploy off + a `deploy` job in Actions that calls Render's Deploy Hook after `verify` and `docker` pass on main (URL stored as a GitHub secret).
+- `/healthz` returns `{"status": "ok", "version": RENDER_GIT_COMMIT}` → Claude (or the user) confirms which commit is in production.
+- **Rollback:** revert through a PR (the normal flow) or "Rollback" to a previous deploy in the Render dashboard. Documented in the README.
 
-### 18. Por qué GitHub + Render y no "Claude Artifacts"
-Los Artifacts de Claude publican páginas alojadas en claude.ai, lo más rápido para un prototipo de frontend, pero no ejecutan un backend Python propio, no tienen repo/CI y no permiten probar el flujo real "PR → checks → deploy" que se quiere evaluar.
-Render frente a alternativas: Fly.io ya no tiene plan gratuito real; Cloud Run exige proyecto con facturación e identidad federada para desplegar desde Actions; Railway es de pago tras la prueba. Render free admite Docker y WebSockets, y los mensajes WebSocket cuentan como tráfico y evitan que el servicio se duerma con una partida en curso.
+### 18. Why GitHub + Render and not "Claude Artifacts"
+Claude Artifacts publish pages hosted on claude.ai, the fastest option for a frontend prototype, but they do not run our own Python backend, have no repo or CI and do not exercise the real "PR → checks → deploy" flow that we want to evaluate.
+Render compared with the alternatives: Fly.io no longer has a real free plan; Cloud Run needs a project with billing and federated identity to deploy from Actions; Railway is paid after the trial. Render's free plan supports Docker and WebSockets, and WebSocket messages count as traffic, so the service does not go to sleep during a game.
 
-### 19. Flujo de trabajo con Claude desde el móvil
-1. Usuario: app de Claude → Code → repo `cuadrillapp` → "pon el botón de revelar más grande".
-2. Sesión en la nube: el script de setup del entorno instala uv si falta y ejecuta `make setup` (sin secretos).
-3. Claude crea rama, implementa, ejecuta `make verify`, hace push y abre PR con resumen corto (y capturas de Playwright si el cambio es visual).
-4. CI verde → el usuario mergea desde la app de GitHub (o se lo pide a Claude).
-5. Render despliega tras checks; Claude comprueba que `/healthz` devuelve el SHA mergeado.
-`CLAUDE.md` fija estas reglas: nunca push a main, `make verify` antes de push, specs de OpenSpec como fuente de verdad, textos en `copy.ts`, `make gen` tras tocar `protocol/`, nada de `await` entre leer y guardar una sala. Complementos: Remote Control de la sesión del portátil y la GitHub Action de Claude para `@claude` en issues (opcional, requiere secreto; fuera de este change).
+### 19. Working with Claude from a phone
+1. User: Claude app → Code → `cuadrillapp` repo → "make the reveal button bigger".
+2. Cloud session: a SessionStart hook runs `scripts/cloud-setup.sh` (installs uv if missing and runs `make setup`), with no secrets.
+3. Claude creates a branch, implements, runs `make verify`, pushes and opens a PR with a short summary (and Playwright screenshots if the change is visual).
+4. Green CI → the user merges from the GitHub app (or asks Claude to).
+5. Render deploys after the checks; Claude checks that `/healthz` returns the merged SHA.
+`CLAUDE.md` sets these rules: never push to main, `make verify` before pushing, OpenSpec specs as the source of truth, player-facing text in `copy.ts`, `make gen` after touching `protocol/`, no `await` between reading and storing a room, English everywhere except the UI copy. Complements: Remote Control of the laptop session, and Claude's GitHub Action for `@claude` in issues (optional, needs a secret; out of scope for this change).
 
-### 20. Seguridad básica
-Mismo origen (sin CORS; `cors_allowed_origins` de Socket.IO restringido al propio origen), middleware de cabeceras seguras (CSP `self` + `wss:` propio, `X-Content-Type-Options`, `Referrer-Policy`), validación Pydantic con `extra="forbid"` de todo payload, rate limit por socket (token bucket en memoria) y por IP en creación de salas, tokens con `secrets`, logs (logging estándar en JSON) sin tokens. `/docs` de FastAPI desactivado en producción. No se almacenan datos personales en este change.
+### 20. Basic security
+Same origin (no CORS; Socket.IO's `cors_allowed_origins` limited to the same origin), a security-headers middleware (CSP `self`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy`), Pydantic validation with `extra="forbid"` on every payload, a per-socket rate limit (in-memory token bucket) and a per-IP limit on room creation, tokens from `secrets`, logs without tokens. FastAPI's docs are disabled in production. No personal data is stored in this change.
 
-### 21. Camino de escalado (no implementado)
-Hoy: 1 instancia, 1 worker, estado en memoria. Para escalar horizontalmente solo hay que sustituir piezas detrás de interfaces ya existentes; dominio, handlers y frontend no cambian:
-1. `RedisRoomStore` (implementa `RoomStore`), con un lock por sala (Redis `SET NX` con TTL) alrededor de get → apply → put.
-2. `socketio.AsyncRedisManager` como `client_manager` para que un broadcast llegue a sockets conectados en otras instancias.
-3. Forzar transporte solo WebSocket en el cliente (sin long-polling) para no necesitar sticky sessions, o un balanceador con afinidad.
-4. `Scheduler` respaldado por Redis (claves con expiración) en lugar de `call_later` en memoria.
-5. Varias instancias o `--workers N` en Uvicorn.
+### 21. Scaling path (not implemented)
+Today: 1 instance, 1 worker, in-memory state. Scaling out only means swapping pieces behind interfaces that already exist; domain, handlers and frontend do not change:
+1. `RedisRoomStore` (implements `RoomStore`), with a per-room lock (Redis `SET NX` with TTL) around get → apply → put.
+2. `socketio.AsyncRedisManager` as `client_manager`, so a broadcast reaches sockets connected to other instances.
+3. WebSocket-only transport on the client (no long-polling) to avoid sticky sessions, or a load balancer with affinity.
+4. A Redis-backed `Scheduler` (keys with expiry) instead of in-memory `call_later`.
+5. Several instances or `--workers N` in Uvicorn.
 
 ## Risks / Trade-offs
 
-- [Un despliegue cierra las salas activas] → No mergear durante una fiesta; el cliente muestra "Sala cerrada" y vuelve al inicio con un toque. El camino de escalado (Redis) lo resolvería.
-- [Arranque en frío de Render free (~1 min tras 15 min sin tráfico)] → Pantalla "Despertando…" con reintentos; el admin abre la app un minuto antes.
-- [Builds Docker más lentas y minutos de build limitados en el plan free] → Imagen con caché de capas (dependencias antes que código); despliegues solo desde main.
-- [Opción "deploy tras checks" de Render no verificada en el plan free] → Se comprueba en la primera tarea de CD; fallback con Deploy Hook ya diseñado.
-- [Dos toolchains (uv + pnpm) en las sesiones en la nube] → `make setup` único y script de setup del entorno; probado en la tarea 10.1.
-- [Desincronización del contrato Python ↔ TS] → Tipos generados + `make gen-check` en CI.
-- [Un `await` accidental entre leer y guardar una sala rompe la atomicidad] → Regla en `CLAUDE.md`, `dispatch` como único punto de mutación y test de concurrencia.
-- [iOS: sin pantalla completa real, sin prompt de instalación] → Standalone + zonas seguras + mini guía de instalación.
-- [Desconexiones al bloquear el móvil] → Wake Lock + reconexión con token + gracia de 60 s antes de la sucesión de admin.
-- [E2E solo en Chromium en CI] → Prueba manual en iPhone antes de cada uso real; WebKit opcional en local.
+- [A deployment closes active rooms] → Do not merge during a party; the client shows "room closed" and goes back home with one tap. The scaling path (Redis) would solve it.
+- [Render free cold start (~1 min after 15 min without traffic)] → "Waking up" screen with retries; the admin opens the app a minute early.
+- [Slower Docker builds and limited build minutes on the free plan] → Layer caching (dependencies before code); deployments only from main.
+- [Render's "deploy after checks" option not verified on the free plan] → Checked in the first CD task; the Deploy Hook fallback is already designed.
+- [Two toolchains (uv + pnpm) in cloud sessions] → A single `make setup` and the environment setup script; tested in task 10.1.
+- [Python ↔ TS contract drift] → Generated types + `make gen-check` in CI.
+- [An accidental `await` between reading and storing a room breaks atomicity] → Rule in `CLAUDE.md`, a single mutation path in the hub and a concurrency test.
+- [iOS: no real fullscreen, no install prompt] → Standalone + safe areas + mini install guide.
+- [Disconnects when the phone locks] → Wake Lock + reconnection with a token + 60 s grace before admin succession.
+- [E2E only on Chromium in CI] → Manual test on an iPhone before each real use; WebKit optional locally.
 
 ## Migration Plan
 
-Proyecto nuevo, sin migración de datos. Puesta en marcha:
-1. Hecho: repo público `akkerd/cuadrillapp` creado, con escaneo de secretos y protección de push; commits firmados con el email noreply de GitHub.
-2. Usuario: crea cuenta en Render y conecta el Blueprint (`render.yaml`) al repo (una vez, desde el dashboard).
-3. Claude configura el ruleset de main y verifica el primer despliegue con `/healthz`.
-4. Usuario: instala la app de Claude/GitHub en el repo y configura el entorno de la nube con el script de setup.
-Rollback: ver decisión 17.
+New project, no data migration. Rollout:
+1. Done: public repo `akkerd/cuadrillapp` created, with secret scanning and push protection; commits authored with the GitHub noreply email.
+2. User: creates a Render account and connects the Blueprint (`render.yaml`) to the repo (once, from the dashboard).
+3. Claude configures the main ruleset and verifies the first deployment with `/healthz`.
+4. User: installs the Claude/GitHub app on the repo and configures the cloud environment with the setup script.
+Rollback: see decision 17.
 
 ## Open Questions
 
-- Logo de Cuadrillapp. No afecta a specs ni tareas.
-- ¿Dominio propio en lugar de `*.onrender.com`? Se puede añadir más tarde en Render sin cambios de código.
+- Cuadrillapp logo. It does not affect specs or tasks.
+- A custom domain instead of `*.onrender.com`? It can be added later in Render without code changes.

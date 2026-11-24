@@ -2,71 +2,71 @@
 
 ## Purpose
 
-Define quién está en una sala y cómo se presenta: perfil con emoji y nombre, rol de concursante o solo votante, participantes manuales sin móvil, y cómo se sale o se saca a alguien de la sala.
+Defines who is in a room and how they appear: a profile with emoji and name, the candidate or voter-only role, manual participants without a phone, and how people leave or are removed from a room.
 
 ## ADDED Requirements
 
-### Requirement: Perfil de participante
-Al entrar en una sala, cada participante SHALL elegir un emoji de una lista curada de emojis graciosos (con botón de emoji aleatorio) y un nombre de 1 a 16 caracteres. El sistema MUST recordar en el dispositivo el último emoji y nombre usados para proponerlos la próxima vez.
+### Requirement: Participant profile
+On entering a room, each participant SHALL pick an emoji from a curated list of funny emojis (with a random-emoji button) and a name of 1 to 16 characters. The system MUST remember the last emoji and name used on the device and suggest them next time.
 
-#### Scenario: Emoji aleatorio
-- **WHEN** el visitante pulsa el botón de dado en la pantalla de perfil
-- **THEN** el emoji cambia a otro de la lista al azar
+#### Scenario: Random emoji
+- **WHEN** the visitor taps the dice button on the profile screen
+- **THEN** the emoji changes to another one from the list at random
 
-#### Scenario: Perfil recordado
-- **WHEN** un visitante que ya jugó antes en ese dispositivo entra en otra sala
-- **THEN** el emoji y el nombre aparecen precargados y puede entrar con un solo toque
+#### Scenario: Remembered profile
+- **WHEN** a visitor who played before on that device enters another room
+- **THEN** the emoji and name are prefilled and they can join with a single tap
 
-### Requirement: Nombre único en la sala
-El nombre MUST ser único dentro de la sala sin distinguir mayúsculas, tildes ni espacios sobrantes. Varios participantes MAY tener el mismo emoji.
+### Requirement: Unique name in the room
+The name MUST be unique within the room, ignoring letter case, accents and extra spaces. Several participants MAY have the same emoji.
 
-#### Scenario: Nombre repetido
-- **WHEN** un visitante intenta entrar como "dani" y ya hay un "Dani" en la sala
-- **THEN** el sistema rechaza el perfil con el aviso "Nombre en uso"
+#### Scenario: Duplicate name
+- **WHEN** a visitor tries to join as "dani" and there is already a "Dani" in the room
+- **THEN** the system rejects the profile with a short "name taken" notice
 
-### Requirement: Rol de participante
-Cada participante SHALL tener un rol: **concursante** (recibe puntuaciones y también puntúa) o **solo votante** (puntúa pero no recibe). El rol por defecto es concursante. El participante puede cambiar su propio rol y los admins el de cualquiera, solo mientras la sala está en lobby.
+### Requirement: Participant role
+Each participant SHALL have a role: **candidate** (receives scores and also scores) or **voter-only** (scores but does not receive scores). The default role is candidate. Participants can change their own role, and admins anyone's role, only while the room is in the lobby.
 
-#### Scenario: Cambio de rol en lobby
-- **WHEN** un participante cambia su rol a solo votante durante el lobby
-- **THEN** deja de aparecer como concursante para todos
+#### Scenario: Role change in the lobby
+- **WHEN** a participant switches their role to voter-only during the lobby
+- **THEN** nobody sees them as a candidate any more
 
-#### Scenario: Rol bloqueado durante la votación
-- **WHEN** un participante intenta cambiar su rol con la votación abierta
-- **THEN** el sistema no permite el cambio
+#### Scenario: Role locked during voting
+- **WHEN** a participant tries to change their role while voting is open
+- **THEN** the system does not allow the change
 
-### Requirement: Unirse con la votación en curso
-El sistema SHALL permitir unirse a una sala en cualquier fase. Quien se une durante la votación elige rol al crear su perfil y puede votar inmediatamente; si entra como concursante, pasa a ser puntuable por los demás.
+### Requirement: Joining while voting is open
+The system SHALL allow joining a room in any phase. Someone who joins during voting picks a role while creating their profile and can vote immediately; if they join as a candidate, the others can score them.
 
-#### Scenario: Concursante tardío
-- **WHEN** alguien se une como concursante con la votación abierta
-- **THEN** aparece en la lista de concursantes a puntuar de todos los demás votantes
+#### Scenario: Late candidate
+- **WHEN** someone joins as a candidate while voting is open
+- **THEN** they appear in the list of candidates to score for every other voter
 
-### Requirement: Participantes manuales
-Los admins SHALL poder añadir participantes manuales (personas sin móvil) indicando emoji, nombre y rol. Los participantes manuales cuentan para el límite de la sala, se muestran con un indicador de "sin móvil", nunca se desconectan y nunca pueden ser admins.
+### Requirement: Manual participants
+Admins SHALL be able to add manual participants (people without a phone) by giving an emoji, a name and a role. Manual participants count towards the room limit, are shown with a "no phone" indicator, never disconnect and can never be admins.
 
-#### Scenario: Añadir amigo sin móvil
-- **WHEN** un admin añade a "Abuela 👵" como concursante
-- **THEN** aparece en la lista con el indicador de sin móvil y los demás pueden puntuarla
+#### Scenario: Adding a friend without a phone
+- **WHEN** an admin adds "Grandma 👵" as a candidate
+- **THEN** she appears in the list with the "no phone" indicator and the others can score her
 
-### Requirement: Salir de la sala
-Un participante SHALL poder salir voluntariamente tras confirmar. Al salir se elimina de la sala junto con las puntuaciones que dio y recibió, salvo que la sala esté en fase de resultados, en cuyo caso los resultados ya revelados no cambian.
+### Requirement: Leaving the room
+A participant SHALL be able to leave voluntarily after confirming. Leaving removes them from the room together with the scores they gave and received, unless the room is in the results phase, in which case the revealed results do not change.
 
-#### Scenario: Salir durante la votación
-- **WHEN** un concursante sale con la votación abierta
-- **THEN** desaparece de la lista y sus puntuaciones dadas y recibidas se descartan
+#### Scenario: Leaving during voting
+- **WHEN** a candidate leaves while voting is open
+- **THEN** they disappear from the list and the scores they gave and received are discarded
 
-#### Scenario: Salir tras los resultados
-- **WHEN** un participante sale estando la sala en resultados
-- **THEN** los resultados mostrados a los demás no cambian
+#### Scenario: Leaving after the results
+- **WHEN** a participant leaves while the room shows the results
+- **THEN** the results shown to everyone else do not change
 
-### Requirement: Expulsar participantes
-Los admins SHALL poder sacar de la sala a cualquier otro participante (incluidos manuales y otros admins) tras confirmar. El expulsado MUST ver un aviso ("Fuera 👋") y volver al inicio; sus puntuaciones se tratan igual que al salir. El expulsado MAY volver a entrar con el código como participante nuevo.
+### Requirement: Kicking participants
+Admins SHALL be able to remove any other participant from the room (manual participants and other admins included) after confirming. The kicked participant MUST see a short "you're out" notice and return to the home screen; their scores are handled as if they had left. The kicked participant MAY join again with the code as a new participant.
 
-#### Scenario: Expulsión
-- **WHEN** un admin saca a un participante conectado
-- **THEN** el participante desaparece de la lista de todos y en su móvil aparece el aviso de expulsión
+#### Scenario: Kick
+- **WHEN** an admin kicks a connected participant
+- **THEN** the participant disappears from everyone's list and their phone shows the kick notice
 
-#### Scenario: Un admin no se expulsa a sí mismo
-- **WHEN** un admin abre las acciones sobre su propio perfil
-- **THEN** no aparece la opción de expulsar
+#### Scenario: An admin cannot kick themselves
+- **WHEN** an admin opens the actions on their own profile
+- **THEN** the kick option is not shown

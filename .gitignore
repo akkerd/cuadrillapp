@@ -1,2 +1,22 @@
-# Obsidian: configuración local del vault, no forma parte del proyecto
+# Obsidian: local vault settings, not part of the project
 .obsidian/
+
+# Dependencies and build output
+node_modules/
+dist/
+dev-dist/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Test results
+e2e/test-results/
+e2e/playwright-report/
+
+# Local secrets: never commit them
+.env
+.env.*
+!.env.example

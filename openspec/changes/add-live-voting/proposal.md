@@ -2,45 +2,45 @@
 
 ## Why
 
-Queremos una app móvil, rápida y divertida para montar concursos entre amigos (disfraces, cocina, outfits…) en los que todos puntúan desde su móvil, sin instalar nada de una tienda y sin cuentas. A la vez, el proyecto sirve para probar un sistema de desarrollo en el que se piden cambios desde el móvil a Claude y este los implementa, prueba y despliega de forma segura.
+We want a fast, fun mobile app to run contests among friends (costumes, cooking, outfits…) where everyone scores from their own phone, without installing anything from an app store and without accounts. The project also tests a development workflow where changes are requested from a phone and Claude implements, tests and deploys them safely.
 
 ## What Changes
 
-- Nueva PWA instalable a pantalla completa con un tono visual colorido y desenfadado (estilo juego de fiesta), botones con icono + palabra corta.
-- Salas en tiempo real identificadas por un código corto, con enlace y QR para unirse.
-- Perfil por sala: emoji gracioso + nombre de usuario; rol de **concursante** (recibe puntuaciones) o **solo votante**.
-- Administración de sala: el creador es admin; los admins pueden añadir participantes manuales (sin móvil), sacar gente, votar en nombre de los participantes manuales, cambiar roles y dar o quitar permisos de admin. Si no queda ningún admin, pasa al siguiente participante por orden de llegada.
-- Categorías definidas por los admins (emoji + nombre corto).
-- Votación: cada votante puntúa a cada concursante (menos a sí mismo) en cada categoría con una nota de 0 a 10 en pasos de 0,25.
-- Resultados revelados por un admin: ranking por categoría y ranking general con podio animado.
-- Pipeline de entrega: CI en GitHub Actions, despliegue automático en Render solo tras checks verdes, health check con versión y flujo documentado para que Claude haga cambios desde sesiones en la nube (móvil) vía PR.
+- New installable fullscreen PWA with a colourful, relaxed look (party-game style), buttons made of an icon plus a short word.
+- Real-time rooms identified by a short code, with a link and a QR code to join.
+- Per-room profile: a funny emoji plus a username; a **candidate** role (receives scores) or a **voter-only** role.
+- Room administration: the creator is admin; admins can add manual participants (without a phone), remove people, vote on behalf of manual participants, change roles and grant or revoke admin rights. If no admin is left, the role passes to the next participant in join order.
+- Categories defined by the admins (emoji + short name).
+- Voting: each voter scores every candidate (except themselves) in every category with a score from 0 to 10 in 0.25 steps.
+- Results revealed by an admin: per-category ranking and overall ranking with an animated podium.
+- Delivery pipeline: CI on GitHub Actions, automatic deployment to Render only after green checks, a health check that reports the version, and a documented flow for Claude to make changes from cloud sessions (phone) through PRs.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `rooms`: creación de salas, código, enlace/QR, unión, reconexión, título, ciclo de vida y límites.
-- `participants`: perfil (emoji + nombre), roles concursante/votante, participantes manuales, salir y ser expulsado.
-- `room-admin`: permisos de admin, conceder y quitar admin, sucesión automática.
-- `voting`: categorías, fases del concurso, puntuación 0-10 en pasos de 0,25, voto delegado, progreso y anonimato.
-- `results`: cálculo de medias, rankings por categoría y general, empates, revelado y nuevas rondas.
-- `app-shell`: experiencia PWA (instalación, pantalla completa, pantalla siempre encendida, actualización), idioma y tono de la UI.
-- `delivery-pipeline`: checks de CI, protección de main, despliegue automático y verificable, rollback y flujo de cambios con Claude.
+- `rooms`: room creation, code, link/QR, joining, reconnection, title, lifecycle and limits.
+- `participants`: profile (emoji + name), candidate/voter roles, manual participants, leaving and being kicked.
+- `room-admin`: admin permissions, granting and revoking admin, automatic succession.
+- `voting`: categories, contest phases, 0-10 scoring in 0.25 steps, proxy voting, progress and anonymity.
+- `results`: means, per-category and overall rankings, ties, reveal and new rounds.
+- `app-shell`: PWA experience (installation, fullscreen, screen kept on, updates), language and tone of the UI.
+- `delivery-pipeline`: CI checks, protected main, automatic and verifiable deployment, rollback and the change workflow with Claude.
 
 ### Modified Capabilities
 
-Ninguna (proyecto nuevo).
+None (new project).
 
 ## Impact
 
-- Repositorio nuevo `cuadrillapp` (monorepo): `apps/server` (Python 3.14 + FastAPI + Socket.IO), `apps/web` (React), `packages/protocol` (tipos TypeScript generados desde el backend), `e2e`.
-- Dependencias externas: GitHub (repo, Actions), Render (plan gratuito, un servicio web).
-- Sin base de datos ni datos personales en este change: todo el estado de las salas vive en memoria del servidor.
-- Pasos manuales del usuario: `gh auth login`, crear cuenta en Render y conectar el Blueprint, instalar la app de Claude/GitHub en el repo.
+- New `cuadrillapp` repository (monorepo): `apps/server` (Python 3.14 + FastAPI + Socket.IO), `apps/web` (React), `packages/protocol` (TypeScript types generated from the backend), `e2e`.
+- External dependencies: GitHub (repo, Actions), Render (free plan, one web service).
+- No database and no personal data in this change: all room state lives in server memory.
+- Manual steps for the user: `gh auth login`, create a Render account and connect the Blueprint, install the Claude/GitHub app on the repo.
 
 ## Out of Scope
 
-- Ligas, cuentas de Google, persistencia y ranking global (change `add-leagues-ranking`).
-- Chat, sonidos, temas personalizables y multi-idioma.
-- Escalado horizontal: se ejecuta un único proceso; el camino para escalar queda definido en `design.md` pero no se implementa.
-- Juego offline: la app requiere conexión durante la partida.
+- Leagues, Google accounts, persistence and global ranking (change `add-leagues-ranking`).
+- Chat, sounds, custom themes and multiple languages.
+- Horizontal scaling: a single process runs; the path to scale is described in `design.md` but not implemented.
+- Offline play: the app needs a connection during a game.

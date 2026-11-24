@@ -2,80 +2,87 @@
 
 ## Purpose
 
-Define cómo llega un cambio de código a producción de forma segura y verificable, también cuando lo hace Claude desde una sesión en la nube pedida desde el móvil: checks obligatorios, despliegue automático, comprobación de versión y vuelta atrás.
+Defines how a code change reaches production safely and verifiably, including when Claude makes it from a cloud session requested from a phone: mandatory checks, automatic deployment, version check and rollback.
 
 ## ADDED Requirements
 
-### Requirement: Verificación con un solo comando
-El repositorio SHALL ofrecer un único comando de verificación que ejecute lint, comprobación de tipos, tests unitarios y de integración, build de producción y tests end-to-end en un navegador móvil emulado, y que termine con error si cualquiera falla.
+### Requirement: Single verification command
+The repository SHALL provide a single verification command that runs lint, type checking, unit and integration tests, the production build and end-to-end tests in an emulated mobile browser, and that exits with an error if any of them fails.
 
-#### Scenario: Verificación local o en la nube
-- **WHEN** un desarrollador o Claude ejecuta el comando de verificación en un checkout limpio tras instalar dependencias
-- **THEN** se ejecutan todas las comprobaciones y el resultado indica claramente si todo pasó
+#### Scenario: Local or cloud verification
+- **WHEN** a developer or Claude runs the verification command on a clean checkout after installing dependencies
+- **THEN** every check runs and the result clearly states whether everything passed
 
-### Requirement: Checks en cada PR
-Cada pull request y cada push a main SHALL ejecutar automáticamente la verificación completa en CI y publicar el resultado como check del commit. Si fallan los tests end-to-end, el informe del fallo MUST quedar descargable desde la ejecución.
+### Requirement: Checks on every PR
+Every pull request and every push to main SHALL automatically run the full verification in CI and publish the result as a commit check. If the end-to-end tests fail, the failure report MUST be downloadable from the run.
 
-#### Scenario: PR con un test roto
-- **WHEN** se abre un PR que rompe un test
-- **THEN** el check aparece en rojo en el PR y el informe se puede descargar
+#### Scenario: PR with a broken test
+- **WHEN** a PR that breaks a test is opened
+- **THEN** the check shows red on the PR and the report can be downloaded
 
-### Requirement: Main protegida
-La rama main MUST aceptar cambios solo mediante pull request con el check de verificación en verde; los pushes directos a main MUST rechazarse.
+### Requirement: Protected main
+The main branch MUST accept changes only through pull requests with a green verification check; direct pushes to main MUST be rejected.
 
-#### Scenario: Push directo
-- **WHEN** alguien intenta hacer push directo a main
-- **THEN** GitHub lo rechaza
+#### Scenario: Direct push
+- **WHEN** someone tries to push directly to main
+- **THEN** GitHub rejects it
 
-### Requirement: Despliegue automático tras checks
-Cada commit que llegue a main SHALL desplegarse automáticamente en producción solo después de que su verificación en CI haya pasado; un commit con checks en rojo MUST NOT desplegarse.
+### Requirement: Automatic deployment after checks
+Every commit that reaches main SHALL be deployed to production automatically only after its CI verification has passed; a commit with red checks MUST NOT be deployed.
 
-#### Scenario: Merge de un PR verde
-- **WHEN** se mergea a main un PR con checks en verde y la verificación de main pasa
-- **THEN** la nueva versión queda desplegada sin intervención manual
+#### Scenario: Merging a green PR
+- **WHEN** a PR with green checks is merged into main and main's verification passes
+- **THEN** the new version is deployed without manual intervention
 
-### Requirement: Despliegue sin caída por versiones rotas
-El servicio SHALL exponer un endpoint de salud que responda con estado correcto y el identificador del commit desplegado. Un despliegue cuya versión nueva no responda correctamente en el endpoint de salud MUST NOT sustituir a la versión que está funcionando.
+### Requirement: No downtime from broken versions
+The service SHALL expose a health endpoint that reports a healthy status and the identifier of the deployed commit. A deployment whose new version does not respond correctly on the health endpoint MUST NOT replace the version that is running.
 
-#### Scenario: Comprobar la versión desplegada
-- **WHEN** se consulta el endpoint de salud tras un despliegue
-- **THEN** responde correcto e indica el commit de main recién mergeado
+#### Scenario: Check the deployed version
+- **WHEN** the health endpoint is queried after a deployment
+- **THEN** it responds healthy and reports the commit just merged into main
 
-#### Scenario: Versión que no arranca
-- **WHEN** la versión nueva falla al arrancar
-- **THEN** la versión anterior sigue atendiendo a los usuarios
+#### Scenario: Version that does not start
+- **WHEN** the new version fails to start
+- **THEN** the previous version keeps serving users
 
-### Requirement: Vuelta atrás
-El proyecto SHALL documentar un procedimiento de vuelta atrás que restaure la versión anterior en minutos, ya sea revirtiendo el commit en main mediante PR o reactivando un despliegue anterior en el proveedor de hosting.
+### Requirement: Rollback
+The project SHALL document a rollback procedure that restores the previous version within minutes, either by reverting the commit on main through a PR or by reactivating a previous deployment at the hosting provider.
 
-#### Scenario: Revertir un cambio roto
-- **WHEN** se mergea en main el revert de un cambio problemático
-- **THEN** la versión anterior queda desplegada siguiendo el mismo flujo con checks
+#### Scenario: Revert a broken change
+- **WHEN** the revert of a problematic change is merged into main
+- **THEN** the previous version is deployed through the same flow with checks
 
-### Requirement: Flujo de cambios con Claude
-El repositorio SHALL incluir instrucciones para agentes que obliguen a trabajar en una rama, ejecutar la verificación completa antes de publicar, abrir un PR con un resumen corto y comprobar tras el merge que el endpoint de salud muestra el nuevo commit. Una sesión de Claude en la nube MUST poder instalar dependencias y navegadores de test sin pasos manuales ni secretos.
+### Requirement: Change workflow with Claude
+The repository SHALL include agent instructions that require working on a branch, running the full verification before publishing, opening a PR with a short summary and checking after the merge that the health endpoint shows the new commit. A Claude cloud session MUST be able to install dependencies and test browsers without manual steps or secrets.
 
-#### Scenario: Cambio pedido desde el móvil
-- **WHEN** el usuario pide desde la app de Claude en el móvil un cambio en el repositorio
-- **THEN** Claude lo implementa en una rama, pasa la verificación y abre un PR que el usuario puede mergear desde el móvil
+#### Scenario: Change requested from the phone
+- **WHEN** the user asks for a change to the repository from the Claude app on their phone
+- **THEN** Claude implements it on a branch, passes the verification and opens a PR that the user can merge from the phone
 
-### Requirement: Sin secretos en el repositorio
-El repositorio y los logs de CI MUST NOT contener secretos; la configuración sensible vive solo en las variables de entorno del proveedor de hosting o en los secretos de GitHub.
+### Requirement: No secrets in the repository
+The repository and the CI logs MUST NOT contain secrets; sensitive configuration lives only in the hosting provider's environment variables or in GitHub secrets.
 
-#### Scenario: Revisión de configuración
-- **WHEN** se inspeccionan los ficheros del repositorio y los logs de CI
-- **THEN** no aparece ninguna credencial ni token
+#### Scenario: Configuration review
+- **WHEN** the repository files and CI logs are inspected
+- **THEN** no credential or token appears
 
-### Requirement: Repositorio público con escaneo de secretos
-El repositorio es público y SHALL tener activados el escaneo de secretos y la protección de push del proveedor, de modo que un push que contenga una credencial reconocible MUST rechazarse antes de quedar publicado.
+### Requirement: Public repository with secret scanning
+The repository is public and SHALL have the provider's secret scanning and push protection enabled, so that a push containing a recognisable credential MUST be rejected before it is published.
 
-#### Scenario: Push con una credencial
-- **WHEN** alguien intenta hacer push de un commit que contiene un token reconocible
-- **THEN** GitHub rechaza el push e indica el fichero y la línea
+#### Scenario: Push with a credential
+- **WHEN** someone tries to push a commit containing a recognisable token
+- **THEN** GitHub rejects the push and points to the file and line
 
-### Requirement: Sin datos personales en el repositorio
-El repositorio MUST NOT contener datos personales: ni emails personales, ni teléfonos, ni datos de los participantes de partidas reales. Los commits MUST firmarse con el email privado (noreply) del proveedor y los ejemplos de specs y tests MUST usar nombres ficticios.
+### Requirement: No personal data in the repository
+The repository MUST NOT contain personal data: no personal emails, no phone numbers, no data about participants of real games. Commits MUST be authored with the provider's private (noreply) email, and spec and test examples MUST use fictional names.
 
-#### Scenario: Autoría de commits
-- **WHEN** se revisa el historial del repositorio
-- **THEN** ningún commit muestra un email personal
+#### Scenario: Commit authorship
+- **WHEN** the repository history is reviewed
+- **THEN** no commit shows a personal email
+
+### Requirement: English-only repository content
+Everything in the repository (code, comments, documentation, specs, commit messages and pull request texts) MUST be written in English. The only exception is player-facing UI copy, which MUST live in a single UI copy module.
+
+#### Scenario: Reviewing a pull request
+- **WHEN** a pull request adds documentation, comments or tests
+- **THEN** they are written in English, and any non-English text is limited to the UI copy module

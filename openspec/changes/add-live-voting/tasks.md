@@ -1,76 +1,76 @@
 # Tasks
 
-## 1. Scaffolding del monorepo
+## 1. Monorepo scaffolding
 
-- [ ] 1.1 Crear la estructura (`apps/server` como proyecto uv con layout `src/cuadrillapp`, `apps/web`, `packages/protocol`, `e2e`), `pnpm-workspace.yaml`, `.python-version` (3.14), `.node-version` (26), `.gitignore`; verificar con `uv sync` y `pnpm install` sin errores
-- [ ] 1.2 Configurar en `pyproject.toml` Ruff, mypy strict (plugin Pydantic) y pytest + pytest-asyncio (`asyncio_mode = "auto"`) con un test trivial; configurar Biome, `tsc` y Vitest en la web con un test trivial; verificar que `uv run ruff check`, `uv run mypy`, `uv run pytest` y `pnpm test` pasan
-- [ ] 1.3 `create_app()` mínimo (FastAPI + `socketio.ASGIApp` + `Settings` con pydantic-settings) con `/healthz` → `{status, version}`; verificar con un test httpx y con `uv run uvicorn cuadrillapp.main:app --factory` + `curl /healthz`
-- [ ] 1.4 `Makefile` (`setup`, `dev`, `gen`, `gen-check`, `lint`, `typecheck`, `test`, `build`, `e2e`, `verify`) y `CLAUDE.md` inicial con las reglas de design.md §19; verificar que `make verify` termina en verde en un checkout limpio
+- [ ] 1.1 Create the layout (`apps/server` as a uv project with a `src/cuadrillapp` layout, `apps/web`, `packages/protocol`, `e2e`), `pnpm-workspace.yaml`, `.python-version` (3.14), `.node-version` (26), `.gitignore`; verify with `uv sync` and `pnpm install` without errors
+- [ ] 1.2 Configure Ruff, mypy strict (Pydantic plugin) and pytest + pytest-asyncio (`asyncio_mode = "auto"`) in `pyproject.toml` with a trivial test; configure Biome, `tsc` and Vitest in the web app with a trivial test; verify that `uv run ruff check`, `uv run mypy`, `uv run pytest` and `pnpm test` pass
+- [ ] 1.3 Minimal `create_app()` (FastAPI + `socketio.ASGIApp` + `Settings` with pydantic-settings) with `/healthz` → `{status, version}`; verify with an httpx test and with `uv run uvicorn cuadrillapp.main:create_app --factory` + `curl /healthz`
+- [ ] 1.4 `Makefile` (`setup`, `dev`, `gen`, `gen-check`, `lint`, `typecheck`, `test`, `build`, `e2e`, `verify`) and an initial `CLAUDE.md` with the rules from design.md §19; verify that `make verify` is green on a clean checkout
 
-## 2. Protocolo y constantes
+## 2. Protocol and constants
 
-- [ ] 2.1 Constantes (30 participantes, 8 categorías, longitudes, alfabeto de código sin ambiguos, lista curada de emojis, sugerencias de categorías); verificar con tests de que el alfabeto excluye 0/O/1/I/L y de que los emojis no se repiten
-- [ ] 2.2 Modelos Pydantic de todos los comandos, del ack `{ok,data}|{ok,error}`, de `ErrorCode` y del snapshot proyectado (`extra="forbid"`, notas como cuartos 0..40); verificar con tests de payloads válidos e inválidos (nota 41, campo extra, código mal formado)
-- [ ] 2.3 `python -m cuadrillapp.protocol.export` → `packages/protocol/schema.json` + generación de `generated.ts` con `json-schema-to-typescript` (`make gen`) y `make gen-check`; verificar que modificar un modelo sin regenerar hace fallar `make gen-check`
+- [ ] 2.1 Constants (30 participants, 8 categories, lengths, code alphabet without ambiguous characters, curated emoji list, category suggestions); verify with tests that the alphabet excludes 0/O/1/I/L and that emojis are not repeated
+- [ ] 2.2 Pydantic models for every command, the `{ok,data}|{ok,error}` ack, `ErrorCode` and the projected snapshot (`extra="forbid"`, scores as quarters 0..40); verify with tests of valid and invalid payloads (score 41, extra field, malformed code)
+- [ ] 2.3 `python -m cuadrillapp.protocol.export` → `packages/protocol/schema.json` + generation of `generated.ts` with `json-schema-to-typescript` (`make gen`) and `make gen-check`; verify that changing a model without regenerating makes `make gen-check` fail
 
-## 3. Dominio puro
+## 3. Pure domain
 
-- [ ] 3.1 Helpers `scores.py` (cuartos ↔ decimal) y `names.py` (normalización con `unicodedata`: mayúsculas, tildes, espacios) y generación de códigos únicos; verificar con tests ("  Dáni " ≡ "dani", 29 cuartos = 7,25)
-- [ ] 3.2 Modelos de dominio (dataclasses) y `apply_command` con `deepcopy` + `match` para crear, unirse, título, límite de 30 y nombre único; verificar con tests de los escenarios de `specs/rooms` y del perfil de `specs/participants`
-- [ ] 3.3 Roles (bloqueo fuera del lobby), participantes manuales, salir y expulsar con descarte de notas salvo en resultados, efecto `NotifyKicked`; verificar con tests de `specs/participants`
-- [ ] 3.4 Permisos de admin, conceder/quitar, último admin, sucesión por orden de llegada con efectos `StartAdminGrace`/`CancelAdminGrace`; verificar con tests de todos los escenarios de `specs/room-admin`
-- [ ] 3.5 Categorías (CRUD, orden, solo en lobby), fases y requisitos para empezar, notas (escala, autovoto, edición, cierre), voto delegado, "Listo" y progreso; verificar con tests de `specs/voting`
-- [ ] 3.6 `compute_results` con `Fraction` (media por categoría, nota final, "Sin votos", empates 1,1,3), revelar (congela), reabrir y nueva ronda; verificar con tests de todos los escenarios de `specs/results`
-- [ ] 3.7 `project_snapshot(room, viewer_id)` (mis notas; progreso y notas delegadas solo para admins; nunca notas ajenas) y test de que `domain/` no importa `asyncio`, `socketio` ni `fastapi`; verificar con tests del escenario "Notas ajenas ocultas"
+- [ ] 3.1 Helpers `scores.py` (quarters ↔ decimal) and `names.py` (normalisation with `unicodedata`: case, accents, spaces) and unique code generation; verify with tests ("  Dáni " ≡ "dani", 29 quarters = 7.25)
+- [ ] 3.2 Domain models (dataclasses) and `apply_command` with `deepcopy` + `match` for create, join, title, the 30-participant limit and unique names; verify with tests for the `specs/rooms` scenarios and the profile part of `specs/participants`
+- [ ] 3.3 Roles (locked outside the lobby), manual participants, leaving and kicking with scores discarded except in results, `SeatReleased` effect; verify with tests for `specs/participants`
+- [ ] 3.4 Admin permissions, grant/revoke, last admin, succession by join order with `StartGrace`/`CancelGrace` effects; verify with tests for every scenario in `specs/room-admin`
+- [ ] 3.5 Categories (CRUD, order, lobby only), phases and requirements to start, scores (scale, self-vote, editing, closing), proxy voting, "done" and progress; verify with tests for `specs/voting`
+- [ ] 3.6 `compute_results` with `Fraction` (per-category mean, final score, "no votes", ties 1,1,3), reveal (freezes), reopen and new round; verify with tests for every scenario in `specs/results`
+- [ ] 3.7 `project_snapshot(room, viewer_id)` (my scores; progress and proxy scores only for admins; never other people's scores) and a test that `domain/` does not import `asyncio`, `socketio` or `fastapi`; verify with tests for the "Other people's scores hidden" scenario
 
-## 4. Runtime del servidor
+## 4. Server runtime
 
-- [ ] 4.1 Estáticos de `WEB_DIST_DIR` con fallback SPA para `/r/{code}` (excluyendo `/socket.io`, `/api`, `/healthz`), cabeceras de caché del SW y middleware de cabeceras seguras; verificar con tests httpx
-- [ ] 4.2 `build_socket_server`, `dispatch` (rate limit → Pydantic → dominio → `store.put` → broadcast proyectado por socket → efectos) y `MemoryRoomStore`; verificar con test de integración con 3 `socketio.AsyncClient` (crear, unirse, todos ven la lista actualizada) y test de que dos comandos concurrentes sobre la misma sala no se pierden
-- [ ] 4.3 Presencia en `connect`/`disconnect`, `room:rejoin` con token, `Scheduler` real y `FakeScheduler`, gracia de 60 s y sucesión de admin, barrido de salas a los 30 min en el `lifespan`; verificar con tests de integración usando `FakeScheduler.advance()`
-- [ ] 4.4 Rate limit por socket (token bucket), límite de creación por IP y tope global de salas; verificar con tests de ráfaga y de datos inválidos que no alteran la sala
+- [ ] 4.1 Static files from `WEB_DIST_DIR` with SPA fallback for `/r/{code}` (excluding `/socket.io`, `/api`, `/healthz`), service-worker cache headers and the security-headers middleware; verify with httpx tests
+- [ ] 4.2 Socket.IO hub (rate limit → Pydantic → domain → `store.put` → per-socket projected broadcast → effects) and `MemoryRoomStore`; verify with an integration test with 3 `socketio.AsyncClient`s (create, join, everyone sees the updated list) and a test that two concurrent commands on the same room are not lost
+- [ ] 4.3 Presence on `connect`/`disconnect`, `room:rejoin` with a token, real `Scheduler` and `FakeScheduler`, 60 s grace and admin succession, sweep of rooms after 30 minutes in the `lifespan`; verify with integration tests using `FakeScheduler.advance()`
+- [ ] 4.4 Per-socket rate limit (token bucket), per-IP room creation limit and global room cap; verify with burst and invalid-data tests that leave the room unchanged
 
-## 5. Base del frontend
+## 5. Frontend base
 
-- [ ] 5.1 Vite + React 19 + Tailwind v4 con tokens de la paleta "fiesta", fuente Fredoka auto-alojada, `copy.ts`, componentes base (BotónGordo, Tarjeta, Avatar emoji, Toast) y proxy de Vite hacia Uvicorn; verificar con tests de componentes y capturas de Playwright a 375 px
-- [ ] 5.2 Router (`/`, `/r/:code`), cliente Socket.IO tipado con `@cuadrillapp/protocol`, store del snapshot, reconexión con `rejoin_token`, pantalla "Despertando…" y aviso de conexión perdida; verificar con test del store y prueba manual parando Uvicorn
-- [ ] 5.3 Mapeo de `ErrorCode` a avisos cortos con emoji ("No existe", "Llena", "Nombre en uso"…); verificar con test unitario de que todos los códigos generados tienen texto
+- [ ] 5.1 Vite + React 19 + Tailwind v4 with the "party" palette tokens, self-hosted Fredoka font, `copy.ts`, base components (chunky button, card, emoji avatar, toast) and a Vite proxy to Uvicorn; verify with component tests and Playwright screenshots at 375 px
+- [ ] 5.2 Router (`/`, `/r/:code`), Socket.IO client typed with `@cuadrillapp/protocol`, snapshot store, reconnection with the rejoin token, "waking up" screen and lost-connection notice; verify with a store test and a manual test stopping Uvicorn
+- [ ] 5.3 Mapping from `ErrorCode` to short notices with emoji (not found, full, name taken…); verify with a unit test that every generated code has a text
 
-## 6. Pantallas
+## 6. Screens
 
-- [ ] 6.1 Inicio: "➕ Crear" y "🚪 Unirse" con campo de código tolerante a minúsculas y espacios; verificar con e2e de unirse con " abc23 "
-- [ ] 6.2 Perfil: rejilla de emojis + 🎲 aleatorio, nombre, selector de rol, perfil recordado; verificar con e2e de perfil precargado en segunda sala
-- [ ] 6.3 Lobby: lista con coronas/estado/sin móvil, compartir (código, enlace, QR, Web Share), título editable, panel admin (categorías con sugerencias, añadir manual, expulsar, rol, admin) y botón "Votar" con requisitos; verificar con e2e admin + 2 jugadores
-- [ ] 6.4 Votación: tarjeta por concursante con deslizador de 0,25 y botones ±, emoji según nota, "—" sin nota, guardado automático, progreso, "Listo", selector "Votar como" para admins; verificar con e2e de nota 7,00 → "+" → 7,25 y voto delegado
-- [ ] 6.5 Resultados: podio animado sincronizado con confeti (sin animación con movimiento reducido), pestañas por categoría con medias y nº de notas, "Reabrir" y "Otra"; verificar con e2e del flujo completo y comprobación de empates
+- [ ] 6.1 Home: create and join buttons, with a code field that tolerates lowercase and spaces; verify with an e2e test joining with " abc23 "
+- [ ] 6.2 Profile: emoji grid + 🎲 random, name, role selector, remembered profile; verify with an e2e test of a prefilled profile in a second room
+- [ ] 6.3 Lobby: list with crowns/status/no phone, sharing (code, link, QR, Web Share), editable title, admin panel (categories with suggestions, add manual participant, kick, role, admin) and a vote button with requirements; verify with an e2e test with an admin and 2 players
+- [ ] 6.4 Voting: a card per candidate with a 0.25-step slider and ± buttons, an emoji for the score, "—" when unset, autosave, progress, "done", a "vote as" selector for admins; verify with an e2e test of 7.00 → "+" → 7.25 and proxy voting
+- [ ] 6.5 Results: synchronised animated podium with confetti (no animation with reduced motion), category tabs with means and number of scores, reopen and new round; verify with an e2e test of the full flow and a tie check
 
-## 7. Experiencia PWA
+## 7. PWA experience
 
-- [ ] 7.1 Manifest (fullscreen + standalone, portrait, iconos maskable generados del logo) y service worker en modo prompt con aviso "Actualizar" que no recarga dentro de una sala; verificar con e2e que comprueba el manifest, el registro del SW y las cabeceras de caché servidas por FastAPI
-- [ ] 7.2 Botón "Instalar" (prompt nativo en Android, mini guía en iOS), botón de pantalla completa si está soportada, Wake Lock con re-adquisición y zonas seguras; verificar instalando en un Android y un iPhone reales (checklist en README)
-- [ ] 7.3 Accesibilidad: nombres accesibles en botones de icono, contraste de la paleta, `prefers-reduced-motion`; verificar con `@axe-core/playwright` sin violaciones serias en todas las pantallas
+- [ ] 7.1 Manifest (fullscreen + standalone, portrait, maskable icons generated from the logo) and a service worker in prompt mode with an update notice that never reloads inside a room; verify with an e2e test that checks the manifest, the service-worker registration and the cache headers served by FastAPI
+- [ ] 7.2 Install button (native prompt on Android, mini guide on iOS), fullscreen button when supported, Wake Lock with re-acquisition and safe areas; verify by installing on a real Android phone and a real iPhone (checklist in the README)
+- [ ] 7.3 Accessibility: accessible names on icon buttons, palette contrast, `prefers-reduced-motion`; verify with `@axe-core/playwright` with no serious violations on every screen
 
-## 8. Tests end-to-end de sistema
+## 8. System end-to-end tests
 
-- [ ] 8.1 `webServer` de Playwright que sirve la build con Uvicorn; e2e multi-dispositivo del flujo completo (crear → 2 se unen → categorías → votar → revelar → otra ronda) y de recarga a mitad de votación; verificar que corre dentro de `make verify` en menos de 2 minutos
-- [ ] 8.2 E2E de sucesión de admin (el admin sale y la corona pasa al siguiente) y de expulsión; verificar en verde en local y en CI
+- [ ] 8.1 Playwright `webServer` that serves the build with Uvicorn; multi-device e2e of the full flow (create → 2 join → categories → vote → reveal → new round) and of a reload in the middle of voting; verify that it runs inside `make verify` in under 2 minutes
+- [ ] 8.2 E2E of admin succession (the admin leaves and the crown passes to the next participant) and of kicking; verify green locally and in CI
 
-## 9. Empaquetado, CI/CD y despliegue
+## 9. Packaging, CI/CD and deployment
 
-- [ ] 9.1 Dockerfile multi-etapa (build web con Node 26 + runtime `python:3.14-slim` con uv, usuario sin privilegios, 1 worker) y `.dockerignore`; verificar con `docker build`, `docker run` y `curl /healthz` en local
-- [ ] 9.2 Workflow `ci.yml` con jobs `verify` (setup-uv + pnpm con cachés, `make setup`, `make verify`, artefacto del informe si falla) y `docker` (build + prueba de humo); verificar con un PR de prueba con un test roto (rojo) y arreglado (verde)
-- [ ] 9.3 Repo público en GitHub con escaneo de secretos y protección de push activados, y ruleset de main (PR + checks `verify` y `docker`, sin force-push ni borrado); verificar por API que ambas opciones están activas y que un push directo a main es rechazado
-- [ ] 9.4 `render.yaml` (`runtime: docker`, free, `/healthz`, deploy tras checks) y conexión del Blueprint (paso manual del usuario); comprobar si `autoDeployTrigger: checksPass` está disponible y, si no, implementar el fallback con Deploy Hook; verificar que un merge verde despliega y que `/healthz` devuelve el SHA
-- [ ] 9.5 Probar la protección del despliegue: un commit que rompe el arranque no sustituye a la versión buena; documentar rollback (revert por PR y rollback en Render) en README; verificar ejecutando ambos procedimientos una vez
+- [ ] 9.1 Multi-stage Dockerfile (web build with Node 26 + `python:3.14-slim` runtime with uv, unprivileged user, 1 worker) and `.dockerignore`; verify with `docker build`, `docker run` and `curl /healthz` locally
+- [ ] 9.2 `ci.yml` workflow with `verify` (setup-uv + pnpm with caches, `make setup`, `make verify`, report artifact on failure) and `docker` (build + smoke test) jobs; verify with a test PR with a broken test (red) and then fixed (green)
+- [ ] 9.3 Public GitHub repo with secret scanning and push protection enabled, and a main ruleset (PR + `verify` and `docker` checks, no force pushes or deletion); verify through the API that both settings are active and that a direct push to main is rejected
+- [ ] 9.4 `render.yaml` (`runtime: docker`, free, `/healthz`, deploy after checks) and connecting the Blueprint (manual step for the user); check whether `autoDeployTrigger: checksPass` is available and, if not, implement the Deploy Hook fallback; verify that a green merge deploys and that `/healthz` returns the SHA
+- [ ] 9.5 Test the deployment protection: a commit that breaks startup does not replace the good version; document rollback (revert through a PR and rollback in Render) in the README; verify by running both procedures once
 
-## 10. Flujo con Claude desde el móvil
+## 10. Working with Claude from a phone
 
-- [ ] 10.1 Completar `CLAUDE.md` (rama, `make verify`, `make gen`, regla de atomicidad, PR corto con capturas si es visual, comprobar `/healthz` tras merge, specs OpenSpec como fuente de verdad) y el script de setup del entorno en la nube (uv + `make setup`); verificar arrancando una sesión de Claude en la nube que ejecuta `make verify` en verde sin pasos manuales
-- [ ] 10.2 Prueba de extremo a extremo del sistema: desde el móvil pedir un cambio visual pequeño, revisar el PR, mergear desde el móvil y confirmar el nuevo SHA en `/healthz`; anotar fricciones encontradas en README
+- [ ] 10.1 Complete `CLAUDE.md` (branch, `make verify`, `make gen`, atomicity rule, short PR with screenshots for visual changes, check `/healthz` after merging, OpenSpec specs as the source of truth) and the cloud environment setup script (uv + `make setup`); verify by starting a Claude cloud session that runs `make verify` green without manual steps
+- [ ] 10.2 End-to-end test of the system: from the phone, ask for a small visual change, review the PR, merge from the phone and confirm the new SHA on `/healthz`; write down any friction in the README
 
 ## Workflow follow-up
 
-- Revisar con el usuario la app desplegada en una partida real antes de archivar.
-- Comprobar la implementación contra los specs con el workflow `verify` de OpenSpec.
-- Archivar el change con `openspec archive add-live-voting` para consolidar los specs en `openspec/specs/`.
-- Empezar `add-leagues-ranking` una vez archivado este change.
+- Review the deployed app with the user in a real game before archiving.
+- Check the implementation against the specs with OpenSpec's `verify` workflow.
+- Archive the change with `openspec archive add-live-voting` to consolidate the specs into `openspec/specs/`.
+- Start `add-leagues-ranking` once this change is archived.

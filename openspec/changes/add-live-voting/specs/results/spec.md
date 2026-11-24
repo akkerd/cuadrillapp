@@ -2,60 +2,60 @@
 
 ## Purpose
 
-Define cómo se calculan y se muestran los resultados de un concurso: media por categoría, nota final, rankings con empates, revelado con podio y cómo seguir jugando después.
+Defines how a contest's results are computed and shown: per-category mean, final score, rankings with ties, the podium reveal and how to keep playing afterwards.
 
 ## ADDED Requirements
 
-### Requirement: Media por categoría
-La nota de un concursante en una categoría SHALL ser la media aritmética de las notas recibidas en esa categoría, junto con el número de notas recibidas. Si no recibió ninguna, su nota en esa categoría queda vacía.
+### Requirement: Per-category mean
+A candidate's score in a category SHALL be the arithmetic mean of the scores received in that category, together with the number of scores received. If they received none, their score in that category is empty.
 
-#### Scenario: Media simple
-- **WHEN** un concursante recibe 6,00, 7,50 y 9,00 en "Gracioso"
-- **THEN** su media en "Gracioso" es 7,50 con 3 notas
+#### Scenario: Simple mean
+- **WHEN** a candidate receives 6.00, 7.50 and 9.00 in "funny"
+- **THEN** their mean in "funny" is 7.50 from 3 scores
 
-### Requirement: Nota final
-La nota final de un concursante SHALL ser la media de sus medias por categoría, contando solo las categorías en las que recibió al menos una nota. Un concursante sin ninguna nota queda "Sin votos" al final del ranking general.
+### Requirement: Final score
+A candidate's final score SHALL be the mean of their per-category means, counting only the categories where they received at least one score. A candidate with no scores at all is listed last in the overall ranking as having no votes.
 
-#### Scenario: Nota final con dos categorías
-- **WHEN** un concursante tiene 7,50 en "Gracioso" y 8,50 en "Estilo"
-- **THEN** su nota final es 8,00
+#### Scenario: Final score with two categories
+- **WHEN** a candidate has 7.50 in "funny" and 8.50 in "style"
+- **THEN** their final score is 8.00
 
-#### Scenario: Concursante sin votos
-- **WHEN** un concursante no recibió ninguna nota
-- **THEN** aparece al final del ranking general marcado como "Sin votos"
+#### Scenario: Candidate without votes
+- **WHEN** a candidate received no scores
+- **THEN** they appear last in the overall ranking, marked as having no votes
 
-### Requirement: Rankings y empates
-El sistema SHALL ordenar a los concursantes de mayor a menor nota en un ranking general y en un ranking por cada categoría. Las comparaciones MUST hacerse sobre el valor exacto, y los empates comparten posición (por ejemplo 1, 1, 3). Las notas se muestran redondeadas a 2 decimales.
+### Requirement: Rankings and ties
+The system SHALL sort candidates from highest to lowest score in an overall ranking and in a ranking for each category. Comparisons MUST use the exact value, and ties share a position (for example 1, 1, 3). Scores are displayed rounded to 2 decimals.
 
-#### Scenario: Empate en primera posición
-- **WHEN** dos concursantes tienen exactamente la misma nota final más alta
-- **THEN** ambos aparecen en la posición 1 y el siguiente en la posición 3
+#### Scenario: Tie for first place
+- **WHEN** two candidates have exactly the same highest final score
+- **THEN** both appear in position 1 and the next one in position 3
 
-### Requirement: Revelar resultados
-Un admin SHALL cerrar la votación y revelar los resultados con un único botón. Al revelar, los resultados se calculan y se congelan, y todos los dispositivos muestran a la vez un podio animado que descubre el tercer, segundo y primer puesto, con confeti para el ganador.
+### Requirement: Reveal the results
+An admin SHALL close voting and reveal the results with a single button. On reveal, the results are computed and frozen, and every device shows at the same time an animated podium that uncovers third, second and first place, with confetti for the winner.
 
-#### Scenario: Revelado sincronizado
-- **WHEN** un admin pulsa "Revelar"
-- **THEN** todos los participantes ven la animación del podio al mismo tiempo y nadie puede cambiar notas
+#### Scenario: Synchronised reveal
+- **WHEN** an admin taps the reveal button
+- **THEN** every participant sees the podium animation at the same time and nobody can change scores
 
-#### Scenario: Movimiento reducido
-- **WHEN** el dispositivo tiene activada la preferencia de reducir movimiento
-- **THEN** el podio se muestra sin animaciones ni confeti
+#### Scenario: Reduced motion
+- **WHEN** the device has the reduce-motion preference enabled
+- **THEN** the podium is shown without animation or confetti
 
-### Requirement: Consulta de resultados
-En la fase de resultados, cada participante SHALL poder ver el ranking general y el de cada categoría, con la media y el número de notas de cada concursante, sin ver notas individuales.
+### Requirement: Browsing the results
+In the results phase, each participant SHALL be able to see the overall ranking and each category's ranking, with each candidate's mean and number of scores, without seeing individual scores.
 
-#### Scenario: Pestaña de categoría
-- **WHEN** un participante toca la pestaña "😂 Gracioso" en resultados
-- **THEN** ve el ranking de esa categoría con medias y número de notas
+#### Scenario: Category tab
+- **WHEN** a participant taps the "😂 funny" tab in the results
+- **THEN** they see that category's ranking with means and number of scores
 
-### Requirement: Reabrir y nueva ronda
-Desde resultados, un admin SHALL poder reabrir la votación conservando todas las notas, o empezar una nueva ronda que vuelve al lobby conservando participantes y categorías y borrando todas las notas.
+### Requirement: Reopen and new round
+From the results, an admin SHALL be able to reopen voting keeping all scores, or start a new round that goes back to the lobby keeping participants and categories and clearing all scores.
 
-#### Scenario: Reabrir
-- **WHEN** un admin pulsa "Reabrir"
-- **THEN** la sala vuelve a votación con las notas anteriores intactas y editables
+#### Scenario: Reopen
+- **WHEN** an admin taps the reopen button
+- **THEN** the room goes back to voting with the previous scores intact and editable
 
-#### Scenario: Nueva ronda
-- **WHEN** un admin pulsa "Otra" y confirma
-- **THEN** la sala vuelve al lobby con los mismos participantes y categorías y sin notas
+#### Scenario: New round
+- **WHEN** an admin taps the new-round button and confirms
+- **THEN** the room goes back to the lobby with the same participants and categories and no scores

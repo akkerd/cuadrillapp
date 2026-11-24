@@ -2,56 +2,56 @@
 
 ## Purpose
 
-Permite iniciar sesión con una cuenta de Google para crear concursos que se guardan en ligas y para ver las ligas propias desde cualquier dispositivo, sin que jugar requiera cuenta.
+Lets people sign in with a Google account to create contests that are saved into leagues and to see their leagues from any device, while playing still needs no account.
 
 ## ADDED Requirements
 
-### Requirement: Inicio de sesión con Google
-El sistema SHALL permitir iniciar sesión con una cuenta de Google desde la pantalla de inicio con un botón "Entrar". Tras iniciar sesión, la app MUST mostrar el avatar del usuario en lugar del botón y mantener la sesión al cerrar y reabrir la app.
+### Requirement: Google sign-in
+The system SHALL let users sign in with a Google account from the home screen with a sign-in button. After signing in, the app MUST show the user's avatar instead of the button and keep the session when the app is closed and reopened.
 
-#### Scenario: Login correcto
-- **WHEN** un visitante pulsa "Entrar" y autoriza con su cuenta de Google
-- **THEN** vuelve a la app con su avatar visible en la pantalla de inicio
+#### Scenario: Successful sign-in
+- **WHEN** a visitor taps the sign-in button and authorises with their Google account
+- **THEN** they return to the app with their avatar visible on the home screen
 
-#### Scenario: Sesión persistente
-- **WHEN** un usuario con sesión iniciada cierra la app y la vuelve a abrir días después
-- **THEN** sigue con la sesión iniciada
+#### Scenario: Persistent session
+- **WHEN** a signed-in user closes the app and opens it again days later
+- **THEN** they are still signed in
 
-#### Scenario: Login cancelado
-- **WHEN** el visitante cancela la autorización en Google
-- **THEN** vuelve a la pantalla de inicio sin sesión y con un aviso corto
+#### Scenario: Sign-in cancelled
+- **WHEN** the visitor cancels the authorisation at Google
+- **THEN** they return to the home screen signed out, with a short notice
 
-### Requirement: Cerrar sesión
-Un usuario con sesión iniciada SHALL poder cerrarla desde el menú de su avatar. Cerrar sesión MUST NOT afectar a las salas en las que esté jugando.
+### Requirement: Sign out
+A signed-in user SHALL be able to sign out from their avatar menu. Signing out MUST NOT affect the rooms they are playing in.
 
-#### Scenario: Cerrar sesión
-- **WHEN** el usuario pulsa "Salir" en el menú del avatar
-- **THEN** la app vuelve a mostrar el botón "Entrar"
+#### Scenario: Sign out
+- **WHEN** the user taps sign out in the avatar menu
+- **THEN** the app shows the sign-in button again
 
-### Requirement: Jugar sin cuenta
-Unirse a una sala, votar y ver resultados SHALL seguir funcionando sin iniciar sesión, tanto en salas sin liga como en salas de liga.
+### Requirement: Playing without an account
+Joining a room, voting and seeing the results SHALL keep working without signing in, both in rooms without a league and in league rooms.
 
-#### Scenario: Invitado en sala de liga
-- **WHEN** un visitante sin sesión se une con el código a una sala de liga
-- **THEN** puede elegir su jugador, votar y ver resultados sin que se le pida iniciar sesión
+#### Scenario: Guest in a league room
+- **WHEN** a visitor who is not signed in joins a league room with the code
+- **THEN** they can pick their player, vote and see the results without being asked to sign in
 
-### Requirement: Datos mínimos
-De la cuenta de Google el sistema MUST guardar solo el identificador de la cuenta, el nombre, el email y la URL del avatar, y MUST NOT mostrar el email a otros usuarios.
+### Requirement: Minimal data
+From the Google account, the system MUST store only the account identifier, the name, the email and the avatar URL, and MUST NOT show the email to other users.
 
-#### Scenario: Email privado
-- **WHEN** otro miembro de la liga consulta el ranking
-- **THEN** no ve el email de ningún usuario
+#### Scenario: Private email
+- **WHEN** another league member looks at the ranking
+- **THEN** they do not see any user's email
 
-### Requirement: Vincular participaciones del dispositivo
-Al iniciar sesión, el sistema SHALL vincular a la cuenta los jugadores de liga que ese dispositivo haya usado en concursos anteriores, siempre que esos jugadores no estén ya vinculados a otra cuenta.
+### Requirement: Linking the device's participations
+On sign-in, the system SHALL link to the account the league players that the device used in previous contests, as long as those players are not already linked to another account.
 
-#### Scenario: Jugué como invitado y luego inicio sesión
-- **WHEN** alguien que jugó como "Lucas" en la liga "Los Primos" desde su móvil sin sesión inicia sesión después en ese móvil
-- **THEN** la liga "Los Primos" aparece entre sus ligas y "Lucas" queda vinculado a su cuenta
+#### Scenario: Played as a guest, then signed in
+- **WHEN** someone who played as "Lucas" in the "Cousins" league from their phone without signing in later signs in on that phone
+- **THEN** the "Cousins" league appears among their leagues and "Lucas" is linked to their account
 
-### Requirement: Acceso de prueba fuera de producción
-El sistema SHALL ofrecer un inicio de sesión de prueba sin Google, solo cuando se ejecute fuera de producción con el acceso de prueba activado explícitamente, para que los tests automáticos y las sesiones de desarrollo no necesiten credenciales reales. En producción MUST estar siempre desactivado.
+### Requirement: Test sign-in outside production
+The system SHALL offer a test sign-in without Google, only when running outside production with test sign-in explicitly enabled, so that automated tests and development sessions need no real credentials. In production it MUST always be disabled.
 
-#### Scenario: Producción
-- **WHEN** el servicio arranca en producción con el acceso de prueba activado por error
-- **THEN** el servicio se niega a arrancar y registra el motivo
+#### Scenario: Production
+- **WHEN** the service starts in production with test sign-in enabled by mistake
+- **THEN** the service refuses to start and logs the reason
