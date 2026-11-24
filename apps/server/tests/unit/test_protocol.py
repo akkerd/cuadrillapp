@@ -2,26 +2,27 @@ import pytest
 from pydantic import ValidationError
 
 from cuadrillapp.protocol import commands as c
-from cuadrillapp.protocol.snapshot import Me
+from cuadrillapp.protocol.snapshot import Progress
 
 
 def test_commands_accept_camel_case_payloads() -> None:
-    cmd = c.AdminSet.model_validate({"participantId": "p2", "isAdmin": True})
-    assert cmd.is_admin
+    cmd = c.ScoreSet.model_validate({"candidateId": "p2", "categoryId": "c1", "quarters": 29})
+    assert cmd.quarters == 29
 
 
 @pytest.mark.parametrize(
     "payload",
     [
-        {"participantId": "p2", "isAdmin": "yes"},
-        {"participantId": "p2!", "isAdmin": True},
-        {"participantId": "p2", "isAdmin": True, "extra": 1},
-        {"isAdmin": True},
+        {"candidateId": "p2", "categoryId": "c1", "quarters": 41},  # 10.25
+        {"candidateId": "p2", "categoryId": "c1", "quarters": 29.2},  # 7.30
+        {"candidateId": "p2", "categoryId": "c1", "quarters": "29"},
+        {"candidateId": "p2", "categoryId": "c1", "quarters": 29, "extra": 1},
+        {"candidateId": "p2!", "categoryId": "c1", "quarters": 29},
     ],
 )
-def test_invalid_payloads_are_rejected(payload: dict[str, object]) -> None:
+def test_invalid_score_payloads_are_rejected(payload: dict[str, object]) -> None:
     with pytest.raises(ValidationError):
-        c.AdminSet.model_validate(payload)
+        c.ScoreSet.model_validate(payload)
 
 
 def test_profile_rejects_overlong_names() -> None:
@@ -34,7 +35,6 @@ def test_role_defaults_to_candidate() -> None:
 
 
 def test_outgoing_models_serialize_in_camel_case() -> None:
-    assert Me(participant_id="p1", is_admin=True).model_dump() == {
-        "participantId": "p1",
-        "isAdmin": True,
-    }
+    assert Progress(given=1, total=2).model_dump() == {"given": 1, "total": 2}
+    dumped = c.ScoreSet(candidate_id="p2", category_id="c1", quarters=4).model_dump()
+    assert "candidateId" in dumped

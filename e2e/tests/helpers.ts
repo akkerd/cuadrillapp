@@ -32,6 +32,26 @@ export async function joinByLink(
   await expect(page.getByText(`${name} · Tú`)).toBeVisible();
 }
 
+export async function addCategory(page: Page, name: string): Promise<void> {
+  await page.getByRole("button", { name, exact: true }).click();
+  await expect(page.getByRole("button", { name: `Borrar ${name}` })).toBeVisible();
+}
+
+export function score(page: Page, category: string, candidate: string) {
+  const group = page.getByRole("group", { name: `${category} · ${candidate}` });
+  return {
+    group,
+    slider: group.getByRole("slider"),
+    value: group.getByTestId("score-value"),
+    plus: group.getByRole("button", { name: "Sumar 0,25" }),
+    minus: group.getByRole("button", { name: "Restar 0,25" }),
+    /** Set the score in points (e.g. 7 → 7,00 on screen). */
+    async set(points: number) {
+      await group.getByRole("slider").fill(String(points * 4));
+    },
+  };
+}
+
 export async function confirm(page: Page): Promise<void> {
   await page.getByRole("dialog").getByRole("button", { name: "Sí" }).click();
 }

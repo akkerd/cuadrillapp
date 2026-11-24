@@ -20,6 +20,115 @@
       "title": "AdminSet",
       "type": "object"
     },
+    "CategoryAdd": {
+      "additionalProperties": false,
+      "properties": {
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "emoji",
+        "name"
+      ],
+      "title": "CategoryAdd",
+      "type": "object"
+    },
+    "CategoryDelete": {
+      "additionalProperties": false,
+      "properties": {
+        "categoryId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "categoryId"
+      ],
+      "title": "CategoryDelete",
+      "type": "object"
+    },
+    "CategoryMove": {
+      "additionalProperties": false,
+      "properties": {
+        "categoryId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            -1,
+            1
+          ],
+          "type": "integer"
+        }
+      },
+      "required": [
+        "categoryId",
+        "direction"
+      ],
+      "title": "CategoryMove",
+      "type": "object"
+    },
+    "CategoryUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "categoryId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        "emoji": {
+          "maxLength": 16,
+          "minLength": 1,
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 20,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "categoryId",
+        "emoji",
+        "name"
+      ],
+      "title": "CategoryUpdate",
+      "type": "object"
+    },
+    "CategoryView": {
+      "properties": {
+        "emoji": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "emoji",
+        "name"
+      ],
+      "title": "CategoryView",
+      "type": "object"
+    },
     "JoinResult": {
       "properties": {
         "code": {
@@ -88,11 +197,15 @@
         },
         "participantId": {
           "type": "string"
+        },
+        "progress": {
+          "$ref": "#/$defs/Progress"
         }
       },
       "required": [
         "participantId",
-        "isAdmin"
+        "isAdmin",
+        "progress"
       ],
       "title": "Me",
       "type": "object"
@@ -181,6 +294,9 @@
         "connected": {
           "type": "boolean"
         },
+        "done": {
+          "type": "boolean"
+        },
         "emoji": {
           "type": "string"
         },
@@ -195,6 +311,16 @@
         },
         "name": {
           "type": "string"
+        },
+        "progress": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Progress"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "role": {
           "enum": [
@@ -211,7 +337,9 @@
         "role",
         "isAdmin",
         "isManual",
-        "connected"
+        "connected",
+        "done",
+        "progress"
       ],
       "title": "ParticipantView",
       "type": "object"
@@ -225,7 +353,10 @@
           "type": "boolean"
         },
         "phase": {
-          "const": "lobby",
+          "enum": [
+            "lobby",
+            "voting"
+          ],
           "type": "string"
         },
         "title": {
@@ -239,6 +370,22 @@
         "full"
       ],
       "title": "PeekResult",
+      "type": "object"
+    },
+    "Progress": {
+      "properties": {
+        "given": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "given",
+        "total"
+      ],
+      "title": "Progress",
       "type": "object"
     },
     "RejoinResult": {
@@ -374,11 +521,23 @@
     },
     "RoomSnapshot": {
       "properties": {
+        "categories": {
+          "items": {
+            "$ref": "#/$defs/CategoryView"
+          },
+          "type": "array"
+        },
         "code": {
           "type": "string"
         },
         "me": {
           "$ref": "#/$defs/Me"
+        },
+        "myScores": {
+          "items": {
+            "$ref": "#/$defs/ScoreView"
+          },
+          "type": "array"
         },
         "participants": {
           "items": {
@@ -387,8 +546,20 @@
           "type": "array"
         },
         "phase": {
-          "const": "lobby",
+          "enum": [
+            "lobby",
+            "voting"
+          ],
           "type": "string"
+        },
+        "proxyScores": {
+          "items": {
+            "$ref": "#/$defs/ScoreView"
+          },
+          "type": "array"
+        },
+        "startCheck": {
+          "$ref": "#/$defs/StartCheck"
         },
         "title": {
           "type": "string"
@@ -403,9 +574,112 @@
         "title",
         "phase",
         "me",
-        "participants"
+        "participants",
+        "categories",
+        "myScores",
+        "proxyScores",
+        "startCheck"
       ],
       "title": "RoomSnapshot",
+      "type": "object"
+    },
+    "ScoreSet": {
+      "additionalProperties": false,
+      "description": "Set (or clear with `quarters: null`) a score in quarter points.",
+      "properties": {
+        "asParticipantId": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "candidateId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        "categoryId": {
+          "maxLength": 40,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        "quarters": {
+          "anyOf": [
+            {
+              "maximum": 40,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "candidateId",
+        "categoryId",
+        "quarters"
+      ],
+      "title": "ScoreSet",
+      "type": "object"
+    },
+    "ScoreView": {
+      "properties": {
+        "candidateId": {
+          "type": "string"
+        },
+        "categoryId": {
+          "type": "string"
+        },
+        "quarters": {
+          "type": "integer"
+        },
+        "voterId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "voterId",
+        "candidateId",
+        "categoryId",
+        "quarters"
+      ],
+      "title": "ScoreView",
+      "type": "object"
+    },
+    "StartCheck": {
+      "properties": {
+        "missing": {
+          "items": {
+            "enum": [
+              "categories",
+              "candidates",
+              "participants"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ready": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ready",
+        "missing"
+      ],
+      "title": "StartCheck",
       "type": "object"
     },
     "TitleSet": {
@@ -421,6 +695,39 @@
         "title"
       ],
       "title": "TitleSet",
+      "type": "object"
+    },
+    "VoterDone": {
+      "additionalProperties": false,
+      "properties": {
+        "asParticipantId": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "done": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "done"
+      ],
+      "title": "VoterDone",
+      "type": "object"
+    },
+    "VotingStart": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "VotingStart",
       "type": "object"
     }
   },

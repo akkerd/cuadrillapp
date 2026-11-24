@@ -24,6 +24,13 @@ COMMANDS: dict[str, tuple[type[c.Command], type[BaseModel] | None]] = {
     "participant:kick": (c.ParticipantKick, None),
     "admin:set": (c.AdminSet, None),
     "manual:add": (c.ManualAdd, None),
+    "category:add": (c.CategoryAdd, None),
+    "category:update": (c.CategoryUpdate, None),
+    "category:delete": (c.CategoryDelete, None),
+    "category:move": (c.CategoryMove, None),
+    "voting:start": (c.VotingStart, None),
+    "score:set": (c.ScoreSet, None),
+    "voter:done": (c.VoterDone, None),
 }
 
 # server → client event → model

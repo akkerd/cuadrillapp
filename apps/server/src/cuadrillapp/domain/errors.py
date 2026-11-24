@@ -13,9 +13,14 @@ ErrorCode = Literal[
     "BAD_TOKEN",
     "NAME_TAKEN",
     "FORBIDDEN",
+    "WRONG_PHASE",
     "NOT_FOUND",
+    "NOT_CANDIDATE",
     "NOT_MANUAL",
+    "SELF_VOTE",
     "LAST_ADMIN",
+    "TOO_MANY_CATEGORIES",
+    "START_REQUIREMENTS",
 ]
 
 

@@ -1,5 +1,5 @@
 /** Every player-facing UI string. Short, direct and with emoji. */
-import type { AnyErrorCode } from "@cuadrillapp/protocol";
+import type { AnyErrorCode, StartRequirement } from "@cuadrillapp/protocol";
 
 export const copy = {
   app: "Cuadrillapp",
@@ -32,13 +32,33 @@ export const copy = {
   leave: "Salir",
   leaveConfirm: "¿Salir de la sala? 🚪",
   players: "Jugadores",
+  categories: "Categorías",
+  addCategory: "Añadir",
+  categoryName: "Nombre",
   addPerson: "Añadir",
   addPersonTitle: "Sin móvil 📵",
+  waitingAdmin: "Esperando al admin…",
+  vote: "Votar",
+  missing: {
+    categories: "🏷️ Categoría",
+    candidates: "🏆 Concursante",
+    participants: "👥 2 jugadores",
+  } satisfies Record<StartRequirement, string>,
   makeAdmin: "Hacer admin",
   removeAdmin: "Quitar admin",
   kick: "Expulsar",
   kickConfirm: "¿Expulsar? 👋",
   editProfile: "Perfil",
+  done: "Listo",
+  notDone: "Seguir",
+  voteAs: "Votar como",
+  myself: "Yo",
+  progress: "Progreso",
+  noScore: "—",
+  clear: "Borrar nota",
+  less: "Restar 0,25",
+  more: "Sumar 0,25",
+  nobodyToVote: "Nadie a quien votar 🤷",
   gone: {
     kicked: "Fuera 👋",
     closed: "Sala cerrada 💤",
@@ -56,9 +76,14 @@ export const errorText: Record<AnyErrorCode, string> = {
   BAD_TOKEN: "Sala cerrada 💤",
   NAME_TAKEN: "Nombre en uso 👯",
   FORBIDDEN: "Solo admins 👑",
+  WRONG_PHASE: "Ahora no ⏳",
   NOT_FOUND: "No encontrado 🔍",
+  NOT_CANDIDATE: "No concursa 🗳️",
   NOT_MANUAL: "No permitido 🚫",
+  SELF_VOTE: "A ti no 🙈",
   LAST_ADMIN: "Último admin 👑",
+  TOO_MANY_CATEGORIES: "Máximo de categorías 🏷️",
+  START_REQUIREMENTS: "Falta algo 🧩",
   TIMEOUT: "Sin respuesta ⌛",
   DISCONNECTED: "Sin conexión 📡",
 };

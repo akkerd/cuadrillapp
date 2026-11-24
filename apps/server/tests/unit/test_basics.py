@@ -1,6 +1,11 @@
+from decimal import Decimal
+
+import pytest
+
 from cuadrillapp.constants import CODE_ALPHABET, CODE_LENGTH, EMOJIS
 from cuadrillapp.domain.codes import generate_code, is_valid_code, normalize_code
 from cuadrillapp.domain.names import clean_display, normalize_name
+from cuadrillapp.domain.scores import points_to_quarters, quarters_to_points
 
 
 def test_code_alphabet_has_no_ambiguous_characters() -> None:
@@ -27,3 +32,14 @@ def test_generated_codes_are_valid_and_unique() -> None:
 def test_names_compare_without_case_accents_or_extra_spaces() -> None:
     assert normalize_name("  Dáni ") == normalize_name("dani")
     assert clean_display("  Ana   María ") == "Ana María"
+
+
+@pytest.mark.parametrize(
+    ("points", "quarters"), [("7.25", 29), ("0", 0), ("10", 40), ("7.3", None), ("10.25", None)]
+)
+def test_points_to_quarters(points: str, quarters: int | None) -> None:
+    assert points_to_quarters(points) == quarters
+
+
+def test_quarters_to_points() -> None:
+    assert quarters_to_points(29) == Decimal("7.25")

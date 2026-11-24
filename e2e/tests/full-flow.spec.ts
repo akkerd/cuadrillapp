@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { confirm, createRoom, joinByLink, phone } from "./helpers";
+import { addCategory, confirm, createRoom, joinByLink, phone, score } from "./helpers";
 
-test("rooms: create and join by link or by code", async ({ page, browser }) => {
+test("contest: create, join and vote", async ({ page, browser }) => {
   const code = await createRoom(page, "Ana");
 
   // Leo joins via the link; Sara types the code in lowercase with spaces.
@@ -16,6 +16,35 @@ test("rooms: create and join by link or by code", async ({ page, browser }) => {
   await sara.getByRole("button", { name: "¡Dentro!" }).click();
 
   await expect(page.getByText("Sara")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Votar" })).toBeDisabled();
+
+  await addCategory(page, "Gracioso");
+  await addCategory(page, "Estilo");
+  await expect(leo.getByText("Estilo")).toBeVisible();
+  await page.screenshot({ path: "test-results/shots/lobby.png", fullPage: true });
+
+  await page.getByRole("button", { name: "Votar" }).click();
+  await expect(leo.getByRole("group", { name: "Gracioso · Sara" })).toBeVisible();
+  // Nobody scores themselves.
+  await expect(leo.getByRole("group", { name: "Gracioso · Leo" })).toHaveCount(0);
+
+  const leoOnSara = score(leo, "Gracioso", "Sara");
+  await leoOnSara.set(7);
+  await expect(leoOnSara.value).toHaveText("7,00");
+  await leoOnSara.plus.click();
+  await expect(leoOnSara.value).toHaveText("7,25");
+
+  await score(sara, "Gracioso", "Leo").set(9);
+  await score(page, "Estilo", "Leo").set(8);
+  await score(page, "Estilo", "Sara").set(6.5);
+  await expect(page.getByText("2/4")).toBeVisible();
+  await leo.getByRole("button", { name: "Listo" }).click();
+  await expect(page.getByRole("img", { name: "Leo Listo" })).toBeVisible();
+  await leo.screenshot({ path: "test-results/shots/voting.png", fullPage: true });
+
+  // Reloading mid-vote keeps the seat and the scores.
+  await leo.reload();
+  await expect(score(leo, "Gracioso", "Sara").value).toHaveText("7,25");
 });
 
 test("the profile is remembered for the next room", async ({ page }) => {

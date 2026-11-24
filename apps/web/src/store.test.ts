@@ -8,8 +8,12 @@ function snapshot(version: number, title = "Concurso"): RoomSnapshot {
     version,
     title,
     phase: "lobby",
-    me: { participantId: "p1", isAdmin: true },
+    me: { participantId: "p1", isAdmin: true, progress: { given: 0, total: 0 } },
     participants: [],
+    categories: [],
+    myScores: [],
+    proxyScores: [],
+    startCheck: { ready: false, missing: ["categories"] },
   };
 }
 
